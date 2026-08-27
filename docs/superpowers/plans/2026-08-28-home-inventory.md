@@ -4,12 +4,14 @@
 
 **Goal:** Build a web app where a user creates rooms, adds furniture into each room (suggested by room type or custom), and records items inside each furniture piece with quantity, category, and optional expiry date — plus global search, an all-items summary page, and an expiry alert list.
 
-**Architecture:** Next.js App Router with **server-side-only** database access. Every read goes through a Server Component; every write goes through a Server Action. The Supabase secret key never leaves the server, so the database is not publicly reachable even though v1 has no login. Data access is isolated in `lib/db/*` modules that take no React dependency and are unit-tested against a local Postgres. Shared "libraries" (furniture types, categories) are deduplicated atomically by Postgres functions, not by application-level check-then-insert.
+**Architecture:** Next.js App Router with **server-side-only** database access. Every read goes through a Server Component; every write goes through a Server Action. The Supabase secret key never leaves the server, so the database is not publicly reachable even though v1 has no login. Data access is isolated in `lib/db/*` modules that take no React dependency and are tested against a real dev Postgres in Supabase Cloud — no Docker, and no mocks that could drift from the real database's constraints. Shared "libraries" (furniture types, categories) are deduplicated atomically by Postgres functions, not by application-level check-then-insert.
 
-**Tech Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Supabase (Postgres) · Supabase CLI (local dev, requires Docker) · Vitest · lucide-react (icons)
+**Tech Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Supabase Cloud (Postgres) · Supabase CLI · Vitest · lucide-react (icons) · deployed to Vercel
 
 ## Global Constraints
 
+- **Two separate Supabase projects.** `home-inventory-dev` backs local development and the test suite; `home-inventory-prod` backs the deployed app. This is not optional — the tests in this plan create and **delete** real rows, so pointing them at production would destroy data.
+- **`supabase db reset` wipes the linked database.** Before running it, or any `--linked` command, confirm with `supabase projects list` that the linked ref is the **dev** project. Never link to prod for day-to-day work.
 - **All database access is server-side only.** Never create a Supabase client in a `"use client"` component. Never prefix a Supabase key with `NEXT_PUBLIC_`.
 - **Env vars:** `SUPABASE_URL` and `SUPABASE_SECRET_KEY`. Both server-only. Committed to `.env.example` with placeholder values; real values in `.env.local`, which is gitignored.
 - **RLS is enabled on every table in `public`, with zero policies.** The `anon` and `authenticated` roles get no grants. Access is exclusively via the secret key, which bypasses RLS.
@@ -17,6 +19,7 @@
 - **All identifiers are lowercase snake_case** in SQL. TypeScript uses camelCase and maps at the data-layer boundary.
 - **UI language is Traditional Chinese (繁體中文).** All user-facing labels, buttons, and validation messages.
 - **Every task ends with a passing test run and a commit.**
+- **Tests hit a real network database**, so they run slower than mocked tests and need connectivity. Every test that creates a room deletes it afterwards (`afterEach` / `afterAll`), which cascades to its furniture and items. Names that must be unique per run carry a `Date.now()` suffix; shared-library entries are created through the idempotent `find_or_create` path, so re-running is always safe. If a run is interrupted and leaves stray rows, `supabase db reset --linked` restores a clean dev database.
 
 ---
 
@@ -51,30 +54,47 @@ npm install @supabase/supabase-js lucide-react
 npm install -D vitest @vitejs/plugin-react dotenv
 ```
 
-- [ ] **Step 3: Verify the Supabase CLI is available and start the local stack**
+- [ ] **Step 3: Create the dev Supabase project and link to it**
 
-Docker Desktop must be running first.
+No Docker is involved — development runs against a free Supabase Cloud project.
+
+1. At https://supabase.com/dashboard create a project named **`home-inventory-dev`** (free tier).
+2. Initialise the CLI and link to it:
 
 ```bash
 supabase --version
 supabase init
-supabase start
+supabase login
+supabase projects list          # copy the ref for home-inventory-dev
+supabase link --project-ref <dev-ref>
 ```
 
-`supabase start` prints an API URL and keys. Copy the API URL and the **secret** (`service_role`) key — they go into `.env.local` in the next step.
+3. From the dashboard, Project Settings → API, copy the **Project URL** and the
+   **`service_role` / secret** key. These go into `.env.local` next.
 
 If `supabase` is not found, install it: https://supabase.com/docs/guides/local-development/cli/getting-started
 
+**Verify before continuing:** `supabase projects list` must show `home-inventory-dev`
+as the linked project. Every `--linked` command in this plan, including the
+database-wiping `supabase db reset`, acts on whatever is linked here.
+
 - [ ] **Step 4: Create env files**
 
-Create `.env.example`:
+Create `.env.example` (committed — placeholders only, never real keys):
 
 ```
-SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_SECRET_KEY=replace-with-your-service-role-key
 ```
 
-Create `.env.local` with the real values printed by `supabase start`.
+Create `.env.local` with the real dev-project URL and secret key.
+
+Confirm `.env.local` is gitignored before the first commit — the secret key
+grants full, RLS-bypassing access to the database:
+
+```bash
+git check-ignore .env.local && echo "ignored, safe"
+```
 
 Append to `.gitignore` (the scaffolder already ignores `.env*.local`, verify it does; if not, add):
 
@@ -490,11 +510,18 @@ where (rt.key = 'bedroom'     and ft.name in ('床', '衣櫃', '床頭櫃', '梳
 
 - [ ] **Step 6: Apply the migration and seed**
 
+`db reset` drops the linked database, replays every migration, then runs
+`seed.sql`. Confirm the link points at **`home-inventory-dev`** first — this
+command is destructive:
+
 ```bash
-supabase db reset
+supabase projects list          # confirm the linked ● marks home-inventory-dev
+supabase db reset --linked
 ```
 
-This drops the local database, replays migrations, and runs `seed.sql`.
+Re-run this whenever you need a clean dev database. Later in the project, once
+there is data worth keeping, use `supabase db push` instead — it applies only
+new migrations without wiping anything.
 
 - [ ] **Step 7: Run the test to verify it passes**
 
@@ -504,7 +531,7 @@ Expected: PASS (5 tests)
 - [ ] **Step 8: Run the advisors**
 
 ```bash
-supabase db advisors --local
+supabase db advisors --linked
 ```
 
 Expected: no ERROR-level findings. RLS-enabled-no-policy warnings are expected and correct for this design — the tables are deliberately unreachable via the Data API.
@@ -3689,13 +3716,30 @@ git commit -m "feat: add all-items summary page with search and filters"
 
 ## Deployment (after Task 15)
 
-Not a numbered task because it needs the user's accounts, but the steps are:
+Not a numbered task because it needs the user's accounts. Development has been
+running against `home-inventory-dev` throughout; this creates the separate
+production database and puts the app in front of it.
 
-1. Create a Supabase cloud project; note its URL and secret key.
-2. `supabase link --project-ref <ref>` then `supabase db push` to apply the migrations.
-3. Run `supabase/seed.sql` once against the cloud database via the SQL editor (`db push` does not run seeds).
-4. Deploy to Vercel; set `SUPABASE_URL` and `SUPABASE_SECRET_KEY` as **server-side** environment variables. Confirm neither is prefixed `NEXT_PUBLIC_`.
-5. Run `supabase db advisors` against the cloud project and confirm no ERROR-level findings.
+1. Create a second Supabase project, **`home-inventory-prod`**. Note its URL and secret key.
+2. Apply the schema to it. `db push` is additive and never wipes, which is what
+   you want against production:
+   ```bash
+   supabase link --project-ref <prod-ref>
+   supabase db push
+   ```
+3. Seed it once — `db push` does not run `seed.sql`. Paste the contents of
+   `supabase/seed.sql` into the prod project's SQL editor and run it.
+4. `supabase db advisors --linked` against prod; confirm no ERROR-level findings.
+5. **Re-link back to dev immediately**, so no later `db reset` can hit production:
+   ```bash
+   supabase link --project-ref <dev-ref>
+   supabase projects list   # confirm dev is linked again
+   ```
+6. Deploy to Vercel. Set `SUPABASE_URL` and `SUPABASE_SECRET_KEY` to the **prod**
+   project's values, as server-side environment variables. Confirm neither is
+   prefixed `NEXT_PUBLIC_` — that prefix would ship the secret key to every
+   visitor's browser.
+7. Load the deployed URL and walk the Task 15 QA list once against production.
 
 ## Out of scope for this plan
 
