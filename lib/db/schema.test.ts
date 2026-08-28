@@ -19,19 +19,18 @@ describe("schema", () => {
       .eq("key", "bedroom")
       .single();
     expect(error).toBeNull();
-    const names = data!.room_type_default_furniture.map(
-      (d: { furniture_types: { name: string } }) => d.furniture_types.name,
-    );
+    const row = data as unknown as { room_type_default_furniture: { furniture_types: { name: string } }[] };
+    const names = row.room_type_default_furniture.map((d) => d.furniture_types.name);
     expect(names).toEqual(expect.arrayContaining(["床", "衣櫃", "床頭櫃"]));
   });
 
   it("deduplicates furniture types case-insensitively via the RPC", async () => {
-    const a = await supabase
+    const a = (await supabase
       .rpc("find_or_create_furniture_type", { p_name: "測試酒櫃", p_icon_key: "cabinet" })
-      .single();
-    const b = await supabase
+      .single()) as { data: { id: number } | null; error: { message: string } | null };
+    const b = (await supabase
       .rpc("find_or_create_furniture_type", { p_name: "  測試酒櫃  ", p_icon_key: "cabinet" })
-      .single();
+      .single()) as { data: { id: number } | null; error: { message: string } | null };
     expect(a.error).toBeNull();
     expect(b.error).toBeNull();
     expect(b.data!.id).toBe(a.data!.id);
@@ -39,9 +38,9 @@ describe("schema", () => {
 
   it("rejects a non-positive item quantity", async () => {
     const room = await supabase.from("rooms").insert({ name: "臨時房" }).select().single();
-    const ft = await supabase
+    const ft = (await supabase
       .rpc("find_or_create_furniture_type", { p_name: "臨時櫃", p_icon_key: "cabinet" })
-      .single();
+      .single()) as { data: { id: number } | null; error: { message: string } | null };
     const f = await supabase
       .from("furniture")
       .insert({ room_id: room.data!.id, furniture_type_id: ft.data!.id })
@@ -58,9 +57,9 @@ describe("schema", () => {
 
   it("cascades deletes from room to furniture to items", async () => {
     const room = await supabase.from("rooms").insert({ name: "級聯房" }).select().single();
-    const ft = await supabase
+    const ft = (await supabase
       .rpc("find_or_create_furniture_type", { p_name: "級聯櫃", p_icon_key: "cabinet" })
-      .single();
+      .single()) as { data: { id: number } | null; error: { message: string } | null };
     const f = await supabase
       .from("furniture")
       .insert({ room_id: room.data!.id, furniture_type_id: ft.data!.id })

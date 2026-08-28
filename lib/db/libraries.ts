@@ -35,7 +35,8 @@ export async function findOrCreateFurnitureType(
     .rpc("find_or_create_furniture_type", { p_name: requireName(name), p_icon_key: iconKey })
     .single();
   if (error) throw new Error(`新增傢俬類型失敗:${error.message}`);
-  return { id: data.id, name: data.name, iconKey: data.icon_key };
+  const row = data as unknown as { id: number; name: string; icon_key: string };
+  return { id: row.id, name: row.name, iconKey: row.icon_key };
 }
 
 export async function listCategories(search?: string): Promise<Category[]> {
@@ -53,7 +54,8 @@ export async function findOrCreateCategory(name: string): Promise<Category> {
     .rpc("find_or_create_category", { p_name: requireName(name) })
     .single();
   if (error) throw new Error(`新增分類失敗:${error.message}`);
-  return { id: data.id, name: data.name };
+  const row = data as unknown as { id: number; name: string };
+  return { id: row.id, name: row.name };
 }
 
 export async function listSuggestedFurnitureTypes(roomTypeId: number): Promise<FurnitureType[]> {
