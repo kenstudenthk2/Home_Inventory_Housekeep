@@ -1,69 +1,73 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { listRooms } from "@/lib/db/rooms";
+import { listExpiringItems } from "@/lib/db/inventory";
+import { ExpiryBadge } from "@/components/ExpiryBadge";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const [rooms, expiring] = await Promise.all([listRooms(), listExpiringItems()]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="flex flex-col gap-8">
+      {expiring.length > 0 && (
+        <section className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <h2 className="mb-3 font-semibold text-amber-900">到期提醒({expiring.length})</h2>
+          <ul className="flex flex-col gap-2">
+            {expiring.map((row) => (
+              <li key={row.itemId} className="flex flex-wrap items-center gap-2 text-sm">
+                <ExpiryBadge expiryDate={row.expiryDate} />
+                <span className="font-medium">{row.itemName}</span>
+                <span className="text-slate-500">
+                  {row.roomName} · {row.furnitureName} · {row.quantity} 件
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-xl font-semibold">房間</h1>
+          <Link
+            href="/rooms/new"
+            className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            新增房間
+          </Link>
+        </div>
+
+        {rooms.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-slate-500">
+            仲未有房間。㩒「新增房間」開始記錄。
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {rooms.map((room) => (
+              <li key={room.id}>
+                <Link
+                  href={`/rooms/${room.id}`}
+                  className="block rounded-lg border border-slate-200 bg-white p-4 hover:border-slate-400"
+                >
+                  <h3 className="font-medium">{room.name}</h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {room.roomTypeLabel ?? "未分類"}
+                    {room.widthCm && room.lengthCm
+                      ? ` · ${room.widthCm} × ${room.lengthCm} cm`
+                      : ""}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    {room.furnitureCount} 件傢俬 · {room.itemCount} 件物品
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
