@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createItem, updateItem, deleteItem } from "@/lib/db/items";
+import { getFurniture } from "@/lib/db/furniture";
 import { optionalNumber, optionalText, requiredNumber, requiredText } from "@/lib/form";
 
 function categoryFrom(formData: FormData) {
@@ -13,6 +14,7 @@ function categoryFrom(formData: FormData) {
 
 export async function createItemAction(formData: FormData) {
   const furnitureId = requiredNumber(formData, "furnitureId");
+  const furniture = await getFurniture(furnitureId);
   await createItem({
     furnitureId,
     name: requiredText(formData, "name"),
@@ -22,6 +24,7 @@ export async function createItemAction(formData: FormData) {
   });
 
   revalidatePath(`/furniture/${furnitureId}`);
+  if (furniture) revalidatePath(`/rooms/${furniture.roomId}`);
   revalidatePath("/items");
   revalidatePath("/");
 }
@@ -29,6 +32,7 @@ export async function createItemAction(formData: FormData) {
 export async function updateItemAction(formData: FormData) {
   const id = requiredNumber(formData, "id");
   const furnitureId = requiredNumber(formData, "furnitureId");
+  const furniture = await getFurniture(furnitureId);
   await updateItem(id, {
     name: requiredText(formData, "name"),
     quantity: optionalNumber(formData, "quantity") ?? 1,
@@ -37,15 +41,18 @@ export async function updateItemAction(formData: FormData) {
   });
 
   revalidatePath(`/furniture/${furnitureId}`);
+  if (furniture) revalidatePath(`/rooms/${furniture.roomId}`);
   revalidatePath("/items");
   revalidatePath("/");
 }
 
 export async function deleteItemAction(formData: FormData) {
   const furnitureId = requiredNumber(formData, "furnitureId");
+  const furniture = await getFurniture(furnitureId);
   await deleteItem(requiredNumber(formData, "id"));
 
   revalidatePath(`/furniture/${furnitureId}`);
+  if (furniture) revalidatePath(`/rooms/${furniture.roomId}`);
   revalidatePath("/items");
   revalidatePath("/");
 }
