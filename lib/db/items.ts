@@ -116,6 +116,32 @@ export async function updateItem(
   return mapItem(data as unknown as ItemRow);
 }
 
+/** Existing item names grouped by category, for the add-item name combobox (trimmed, deduped case-insensitively). */
+export async function groupItemNamesByCategoryId(): Promise<Record<number, string[]>> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .select("category_id,name")
+    .not("category_id", "is", null);
+  if (error) throw new Error(`讀取物品名稱建議失敗:${error.message}`);
+
+  const namesByCategoryId = new Map<number, Map<string, string>>();
+  for (const row of data as unknown as { category_id: number; name: string }[]) {
+    const trimmedName = row.name.trim();
+    const key = trimmedName.toLowerCase();
+    const names = namesByCategoryId.get(row.category_id) ?? new Map<string, string>();
+    if (!names.has(key)) names.set(key, trimmedName);
+    namesByCategoryId.set(row.category_id, names);
+  }
+
+  return Object.fromEntries(
+    Array.from(namesByCategoryId.entries()).map(([categoryId, names]) => [
+      categoryId,
+      Array.from(names.values()).sort((a, b) => a.localeCompare(b, "zh-Hant")),
+    ]),
+  );
+}
+
 export type RoomItemSummary = { name: string; totalQuantity: number };
 
 /** Combines same-named items across every piece of furniture in a room (e.g. two boxes each holding USB cables). */

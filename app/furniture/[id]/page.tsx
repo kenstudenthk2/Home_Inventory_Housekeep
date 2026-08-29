@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFurniture } from "@/lib/db/furniture";
-import { listItemsInFurniture } from "@/lib/db/items";
+import { groupItemNamesByCategoryId, listItemsInFurniture } from "@/lib/db/items";
 import { listCategories } from "@/lib/db/libraries";
 import { createItemAction } from "@/app/actions/items";
 import { ItemForm } from "@/components/ItemForm";
@@ -16,9 +16,10 @@ export default async function FurniturePage({ params }: { params: Promise<{ id: 
   const furniture = await getFurniture(furnitureId);
   if (!furniture) notFound();
 
-  const [items, categories] = await Promise.all([
+  const [items, categories, itemNamesByCategoryId] = await Promise.all([
     listItemsInFurniture(furnitureId),
     listCategories(),
+    groupItemNamesByCategoryId(),
   ]);
 
   return (
@@ -51,6 +52,7 @@ export default async function FurniturePage({ params }: { params: Promise<{ id: 
       <ItemForm
         furnitureId={furnitureId}
         categories={categories}
+        itemNamesByCategoryId={itemNamesByCategoryId}
         action={createItemAction}
         submitLabel="新增物品"
       />

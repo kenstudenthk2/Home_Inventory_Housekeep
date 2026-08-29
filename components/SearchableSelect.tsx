@@ -11,6 +11,7 @@ export function SearchableSelect({
   placeholder = "輸入或揀一個…",
   allowCreate = false,
   defaultValue = "",
+  onSelectChange,
 }: {
   /** Base field name. Emits `<name>Id` and `<name>Name` hidden inputs. */
   name: string;
@@ -20,6 +21,8 @@ export function SearchableSelect({
   /** When true, a typed name that matches nothing becomes a new library entry. */
   allowCreate?: boolean;
   defaultValue?: string;
+  /** Fires whenever the selected option changes (including back to null when the user types). */
+  onSelectChange?: (id: number | null) => void;
 }) {
   const [text, setText] = useState(defaultValue);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -37,11 +40,13 @@ export function SearchableSelect({
   function handleType(value: string) {
     setText(value);
     setSelectedId(null);
+    onSelectChange?.(null);
   }
 
   function handlePick(option: SelectOption) {
     setText(option.label);
     setSelectedId(option.id);
+    onSelectChange?.(option.id);
   }
 
   return (
