@@ -1,22 +1,31 @@
+"use client";
+
 import Link from "next/link";
-import { Home, Search } from "lucide-react";
+import { useState } from "react";
+import { Home, Search, Menu, X } from "lucide-react";
 
 export function AppHeader() {
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-4 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-slate-900">
+    <header className="border-b border-border bg-surface">
+      <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3">
+        <Link href="/" className="flex items-center gap-2 font-heading font-bold text-ink">
           <Home className="h-5 w-5" aria-hidden />
-          家居物品管理
+          <span className="hidden sm:inline">家居物品管理</span>
+          <span className="sm:hidden">家居物品</span>
         </Link>
 
-        <form action="/items" className="ml-auto flex items-center gap-2">
+        <div className="flex-1" />
+
+        <form action="/items" className="hidden items-center gap-2 sm:flex">
           <label htmlFor="global-search" className="sr-only">
             搜尋物品
           </label>
           <div className="relative">
             <Search
-              className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
               aria-hidden
             />
             <input
@@ -24,18 +33,80 @@ export function AppHeader() {
               name="search"
               type="search"
               placeholder="搜尋物品…"
-              className="w-56 rounded-md border border-slate-300 py-1.5 pl-8 pr-3 text-sm"
+              className="w-56 rounded-sm border border-border-input py-1.5 pl-8 pr-3 text-sm"
             />
           </div>
-          <button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white">
+          <button
+            type="submit"
+            className="rounded-sm bg-accent px-3 py-1.5 text-sm font-caption font-semibold text-white hover:bg-accent-light"
+          >
             搜尋
           </button>
         </form>
 
-        <Link href="/items" className="text-sm text-slate-600 hover:text-slate-900">
+        <Link href="/items" className="hidden text-sm font-caption text-ink-muted hover:text-ink sm:block">
           全部物品
         </Link>
+
+        <div className="flex items-center gap-2 sm:hidden">
+          <button
+            type="button"
+            aria-label="搜尋"
+            onClick={() => {
+              setMobileSearchOpen((v) => !v);
+              setMenuOpen(false);
+            }}
+            className="flex h-11 w-11 items-center justify-center rounded-sm bg-bg text-ink-muted"
+          >
+            <Search className="h-[18px] w-[18px]" aria-hidden />
+          </button>
+          <button
+            type="button"
+            aria-label="選單"
+            onClick={() => {
+              setMenuOpen((v) => !v);
+              setMobileSearchOpen(false);
+            }}
+            className="flex h-11 w-11 items-center justify-center rounded-sm bg-bg text-ink-muted"
+          >
+            {menuOpen ? <X className="h-[18px] w-[18px]" aria-hidden /> : <Menu className="h-[18px] w-[18px]" aria-hidden />}
+          </button>
+        </div>
       </div>
+
+      {mobileSearchOpen && (
+        <form action="/items" className="border-t border-border px-4 py-3 sm:hidden">
+          <label htmlFor="global-search-mobile" className="sr-only">
+            搜尋物品
+          </label>
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
+              aria-hidden
+            />
+            <input
+              id="global-search-mobile"
+              name="search"
+              type="search"
+              placeholder="搜尋物品…"
+              autoFocus
+              className="w-full rounded-sm border border-border-input py-2 pl-8 pr-3 text-base"
+            />
+          </div>
+        </form>
+      )}
+
+      {menuOpen && (
+        <nav className="border-t border-border px-4 py-3 sm:hidden">
+          <Link
+            href="/items"
+            onClick={() => setMenuOpen(false)}
+            className="block py-2 text-sm font-caption text-ink"
+          >
+            全部物品
+          </Link>
+        </nav>
+      )}
     </header>
   );
 }

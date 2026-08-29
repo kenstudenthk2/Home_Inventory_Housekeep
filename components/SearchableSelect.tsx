@@ -46,7 +46,7 @@ export function SearchableSelect({
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={`${name}-input`} className="text-sm font-medium text-slate-700">
+      <label htmlFor={`${name}-input`} className="text-sm font-caption font-medium text-ink-muted">
         {label}
       </label>
       <input
@@ -56,7 +56,7 @@ export function SearchableSelect({
         value={text}
         placeholder={placeholder}
         onChange={(e) => handleType(e.target.value)}
-        className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+        className="rounded-sm border border-border-input px-3 py-2 text-base sm:text-sm"
       />
 
       <input type="hidden" name={`${name}Id`} value={selectedId ?? ""} />
@@ -66,7 +66,7 @@ export function SearchableSelect({
         value={selectedId === null ? text.trim() : ""}
       />
 
-      <ul role="listbox" className="max-h-48 overflow-y-auto rounded-md border border-slate-200">
+      <ul role="listbox" className="max-h-48 overflow-y-auto rounded-sm border border-border">
         {matches.map((option) => (
           <li key={option.id}>
             <button
@@ -74,7 +74,7 @@ export function SearchableSelect({
               role="option"
               aria-selected={selectedId === option.id}
               onClick={() => handlePick(option)}
-              className="w-full px-3 py-1.5 text-left text-sm hover:bg-slate-100"
+              className="w-full px-3 py-1.5 text-left text-sm hover:bg-surface-mist"
             >
               {option.label}
             </button>
@@ -82,11 +82,11 @@ export function SearchableSelect({
         ))}
 
         {matches.length === 0 && !showCreate && (
-          <li className="px-3 py-1.5 text-sm text-slate-500">冇符合嘅選項</li>
+          <li className="px-3 py-1.5 text-sm font-caption text-ink-faint">冇符合嘅選項</li>
         )}
 
         {showCreate && (
-          <li className="px-3 py-1.5 text-sm text-emerald-700">新增「{text.trim()}」</li>
+          <li className="px-3 py-1.5 text-sm font-caption text-accent">新增「{text.trim()}」</li>
         )}
       </ul>
     </div>

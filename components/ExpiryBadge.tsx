@@ -14,7 +14,7 @@ export function ExpiryBadge({ expiryDate }: { expiryDate: string | null }) {
 
   const style = STYLES[status];
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style.className}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-caption ${style.className}`}>
       {style.label && <strong>{style.label}</strong>}
       {expiryDate}
     </span>

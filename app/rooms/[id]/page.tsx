@@ -19,22 +19,22 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
     <div className="flex flex-col gap-8">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold">{room.name}</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="font-heading text-xl font-extrabold text-ink">{room.name}</h1>
+          <p className="mt-1 text-sm font-sans text-ink-muted">
             {room.roomTypeLabel ?? "未分類"}
             {room.widthCm && room.lengthCm ? ` · ${room.widthCm} × ${room.lengthCm} cm` : ""}
           </p>
         </div>
-        <Link href={`/rooms/${room.id}/edit`} className="text-sm text-slate-600 hover:underline">
+        <Link href={`/rooms/${room.id}/edit`} className="text-sm font-caption text-ink-muted hover:underline">
           編輯房間
         </Link>
       </div>
 
       <section>
-        <h2 className="mb-3 font-semibold">傢俬({furniture.length})</h2>
+        <h2 className="mb-3 font-heading font-semibold text-ink">傢俬({furniture.length})</h2>
 
         {furniture.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-slate-500">
+          <p className="rounded-md border border-dashed border-border p-6 text-center font-caption text-ink-faint">
             仲未有傢俬。
           </p>
         ) : (
@@ -42,20 +42,20 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
             {furniture.map((item) => (
               <li
                 key={item.id}
-                className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3"
+                className="flex items-center justify-between rounded-md border border-border bg-surface p-3"
               >
                 <Link href={`/furniture/${item.id}`} className="flex flex-1 items-center gap-3">
-                  <FurnitureIcon iconKey={item.iconKey} className="h-5 w-5 text-slate-500" />
+                  <FurnitureIcon iconKey={item.iconKey} className="h-5 w-5 text-ink-muted" />
                   <div>
-                    <p className="font-medium">{item.displayName}</p>
-                    <p className="text-sm text-slate-500">{item.itemCount} 件物品</p>
+                    <p className="font-medium text-ink">{item.displayName}</p>
+                    <p className="text-sm font-caption text-ink-muted">{item.itemCount} 件物品</p>
                   </div>
                 </Link>
                 <form action={deleteFurnitureAction}>
                   <input type="hidden" name="id" value={item.id} />
                   <button
                     type="submit"
-                    className="rounded-md p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                    className="rounded-sm p-2 text-ink-faint hover:bg-red-50 hover:text-red-600"
                     aria-label={`刪除${item.displayName}`}
                   >
                     <Trash2 className="h-4 w-4" aria-hidden />
@@ -66,23 +66,23 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
           </ul>
         )}
 
-        <form action={addFurnitureAction} className="flex items-end gap-2">
+        <form action={addFurnitureAction} className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <input type="hidden" name="roomId" value={room.id} />
           <div className="flex-1">
-            <label htmlFor="furnitureTypeName" className="mb-1 block text-sm text-slate-600">
+            <label htmlFor="furnitureTypeName" className="mb-1 block text-sm font-caption text-ink-muted">
               新增傢俬
             </label>
             <input
               id="furnitureTypeName"
               name="furnitureTypeName"
               placeholder="例如:衣櫃"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-sm border border-border-input px-3 py-2 text-base sm:text-sm"
               required
             />
           </div>
           <button
             type="submit"
-            className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-2 text-sm text-white"
+            className="inline-flex h-11 items-center justify-center gap-1 rounded-sm bg-accent px-3 text-sm font-caption font-semibold text-white hover:bg-accent-light"
           >
             <Plus className="h-4 w-4" aria-hidden />
             新增

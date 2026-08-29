@@ -17,13 +17,13 @@ export function ItemForm({
   return (
     <form
       action={action}
-      className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4"
+      className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4"
     >
       <input type="hidden" name="furnitureId" value={furnitureId} />
       {item && <input type="hidden" name="id" value={item.id} />}
 
       <div className="flex flex-col gap-1">
-        <label htmlFor={`name-${item?.id ?? "new"}`} className="text-sm font-medium text-slate-700">
+        <label htmlFor={`name-${item?.id ?? "new"}`} className="text-sm font-caption font-medium text-ink-muted">
           物品名稱
         </label>
         <input
@@ -32,7 +32,7 @@ export function ItemForm({
           required
           defaultValue={item?.name ?? ""}
           placeholder="例如:AA 電芯"
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-sm border border-border-input px-3 py-2 text-base sm:text-sm"
         />
       </div>
 
@@ -45,11 +45,11 @@ export function ItemForm({
         options={categories.map((c) => ({ id: c.id, label: c.name }))}
       />
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <div className="flex flex-col gap-1">
           <label
             htmlFor={`quantity-${item?.id ?? "new"}`}
-            className="text-sm font-medium text-slate-700"
+            className="text-sm font-caption font-medium text-ink-muted"
           >
             數量
           </label>
@@ -60,14 +60,14 @@ export function ItemForm({
             min="1"
             step="1"
             defaultValue={item?.quantity ?? 1}
-            className="w-24 rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-sm border border-border-input px-3 py-2 text-base sm:w-24 sm:text-sm"
           />
         </div>
 
         <div className="flex flex-col gap-1">
           <label
             htmlFor={`expiryDate-${item?.id ?? "new"}`}
-            className="text-sm font-medium text-slate-700"
+            className="text-sm font-caption font-medium text-ink-muted"
           >
             到期日(選填)
           </label>
@@ -76,12 +76,15 @@ export function ItemForm({
             name="expiryDate"
             type="date"
             defaultValue={item?.expiryDate ?? ""}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-sm border border-border-input px-3 py-2 text-base sm:text-sm"
           />
         </div>
       </div>
 
-      <button type="submit" className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white">
+      <button
+        type="submit"
+        className="h-11 w-full rounded-sm bg-accent px-4 text-sm font-caption font-semibold text-white hover:bg-accent-light"
+      >
         {submitLabel}
       </button>
     </form>

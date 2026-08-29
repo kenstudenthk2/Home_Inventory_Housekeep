@@ -17,7 +17,7 @@ export default async function EditRoomPage({ params }: { params: Promise<{ id: s
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="mb-6 text-xl font-semibold">編輯房間</h1>
+        <h1 className="mb-6 font-heading text-xl font-extrabold text-ink">編輯房間</h1>
         <RoomForm
           roomTypes={roomTypes}
           suggestionsByRoomTypeId={suggestionsByRoomTypeId}
@@ -27,9 +27,9 @@ export default async function EditRoomPage({ params }: { params: Promise<{ id: s
         />
       </div>
 
-      <form action={deleteRoomAction} className="border-t border-slate-200 pt-6">
+      <form action={deleteRoomAction} className="border-t border-border pt-6">
         <input type="hidden" name="id" value={room.id} />
-        <button type="submit" className="text-sm text-red-600 hover:underline">
+        <button type="submit" className="text-sm font-caption text-red-600 hover:underline">
           刪除呢個房間(連同入面所有傢俬同物品)
         </button>
       </form>

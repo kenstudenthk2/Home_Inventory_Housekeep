@@ -10,7 +10,7 @@ export default async function NewRoomPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold">新增房間</h1>
+      <h1 className="mb-6 font-heading text-xl font-extrabold text-ink">新增房間</h1>
       <RoomForm
         roomTypes={roomTypes}
         suggestionsByRoomTypeId={suggestionsByRoomTypeId}

@@ -1,6 +1,22 @@
 import type { Metadata } from "next";
+import { Funnel_Sans, Inter, Geist } from "next/font/google";
 import { AppHeader } from "@/components/AppHeader";
 import "./globals.css";
+
+const funnelSans = Funnel_Sans({
+  subsets: ["latin"],
+  variable: "--font-funnel-sans",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+});
 
 export const metadata: Metadata = {
   title: "家居物品管理",
@@ -9,8 +25,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="zh-Hant">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <html lang="zh-Hant" className={`${funnelSans.variable} ${inter.variable} ${geist.variable}`}>
+      <body className="min-h-screen bg-bg text-ink antialiased">
         <AppHeader />
         <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
       </body>

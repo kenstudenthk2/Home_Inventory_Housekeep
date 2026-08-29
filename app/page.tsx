@@ -12,14 +12,16 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       {expiring.length > 0 && (
-        <section className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <h2 className="mb-3 font-semibold text-amber-900">到期提醒({expiring.length})</h2>
-          <ul className="flex flex-col gap-2">
+        <section className="rounded-md border border-amber-200 bg-amber-50 p-4">
+          <h2 className="mb-3 font-heading font-semibold text-amber-900">到期提醒({expiring.length})</h2>
+          <ul className="flex flex-col gap-3">
             {expiring.map((row) => (
-              <li key={row.itemId} className="flex flex-wrap items-center gap-2 text-sm">
-                <ExpiryBadge expiryDate={row.expiryDate} />
-                <span className="font-medium">{row.itemName}</span>
-                <span className="text-slate-500">
+              <li key={row.itemId} className="flex flex-col gap-1 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                <div className="flex items-center gap-2">
+                  <ExpiryBadge expiryDate={row.expiryDate} />
+                  <span className="font-medium text-ink">{row.itemName}</span>
+                </div>
+                <span className="font-caption text-ink-muted">
                   {row.roomName} · {row.furnitureName} · {row.quantity} 件
                 </span>
               </li>
@@ -30,10 +32,10 @@ export default async function DashboardPage() {
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">房間</h1>
+          <h1 className="font-heading text-xl font-extrabold text-ink">房間</h1>
           <Link
             href="/rooms/new"
-            className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white"
+            className="inline-flex h-11 items-center gap-1 rounded-sm bg-accent px-3 text-sm font-caption font-semibold text-white hover:bg-accent-light"
           >
             <Plus className="h-4 w-4" aria-hidden />
             新增房間
@@ -41,7 +43,7 @@ export default async function DashboardPage() {
         </div>
 
         {rooms.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-slate-500">
+          <p className="rounded-md border border-dashed border-border p-8 text-center font-caption text-ink-faint">
             仲未有房間。㩒「新增房間」開始記錄。
           </p>
         ) : (
@@ -50,16 +52,16 @@ export default async function DashboardPage() {
               <li key={room.id}>
                 <Link
                   href={`/rooms/${room.id}`}
-                  className="block rounded-lg border border-slate-200 bg-white p-4 hover:border-slate-400"
+                  className="block rounded-md border border-border bg-surface p-4 shadow-sm hover:border-accent"
                 >
-                  <h3 className="font-medium">{room.name}</h3>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <h3 className="font-heading font-semibold text-ink">{room.name}</h3>
+                  <p className="mt-1 text-sm font-sans text-ink-muted">
                     {room.roomTypeLabel ?? "未分類"}
                     {room.widthCm && room.lengthCm
                       ? ` · ${room.widthCm} × ${room.lengthCm} cm`
                       : ""}
                   </p>
-                  <p className="mt-2 text-sm text-slate-600">
+                  <p className="mt-2 text-sm font-caption text-ink-muted">
                     {room.furnitureCount} 件傢俬 · {room.itemCount} 件物品
                   </p>
                 </Link>
