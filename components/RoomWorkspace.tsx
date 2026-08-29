@@ -57,6 +57,7 @@ export function RoomWorkspace({
             )}
 
             <ItemForm
+              key={activeFurniture.id}
               furnitureId={activeFurniture.id}
               categories={categories}
               itemNamesByCategoryId={itemNamesByCategoryId}
