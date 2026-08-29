@@ -1,4 +1,5 @@
 import { ExpiryBadge } from "./ExpiryBadge";
+import { SubmitButton } from "./SubmitButton";
 import { deleteItemAction } from "@/app/actions/items";
 import type { Item } from "@/lib/db/types";
 
@@ -16,9 +17,9 @@ export function ItemRow({ item, furnitureId }: { item: Item; furnitureId: number
       <form action={deleteItemAction} className="ml-auto">
         <input type="hidden" name="id" value={item.id} />
         <input type="hidden" name="furnitureId" value={furnitureId} />
-        <button type="submit" className="text-xs font-caption text-red-600 hover:underline">
-          刪除
-        </button>
+        <SubmitButton className="text-xs font-caption text-red-600 hover:underline">
+          {(pending) => (pending ? "刪除緊…" : "刪除")}
+        </SubmitButton>
       </form>
     </li>
   );

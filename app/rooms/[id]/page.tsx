@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { getRoom } from "@/lib/db/rooms";
 import { listFurnitureInRoom } from "@/lib/db/furniture";
 import { addFurnitureAction, deleteFurnitureAction } from "@/app/actions/furniture";
 import { FurnitureIcon } from "@/components/FurnitureIcon";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const dynamic = "force-dynamic";
 
@@ -53,13 +54,18 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
                 </Link>
                 <form action={deleteFurnitureAction}>
                   <input type="hidden" name="id" value={item.id} />
-                  <button
-                    type="submit"
+                  <SubmitButton
                     className="rounded-sm p-2 text-ink-faint hover:bg-red-50 hover:text-red-600"
                     aria-label={`刪除${item.displayName}`}
                   >
-                    <Trash2 className="h-4 w-4" aria-hidden />
-                  </button>
+                    {(pending) =>
+                      pending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      ) : (
+                        <Trash2 className="h-4 w-4" aria-hidden />
+                      )
+                    }
+                  </SubmitButton>
                 </form>
               </li>
             ))}
@@ -80,13 +86,21 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
               required
             />
           </div>
-          <button
-            type="submit"
-            className="inline-flex h-11 items-center justify-center gap-1 rounded-sm bg-accent px-3 text-sm font-caption font-semibold text-white hover:bg-accent-light"
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            新增
-          </button>
+          <SubmitButton className="inline-flex h-11 items-center justify-center gap-1 rounded-sm bg-accent px-3 text-sm font-caption font-semibold text-white hover:bg-accent-light">
+            {(pending) =>
+              pending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  新增緊…
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" aria-hidden />
+                  新增
+                </>
+              )
+            }
+          </SubmitButton>
         </form>
       </section>
     </div>

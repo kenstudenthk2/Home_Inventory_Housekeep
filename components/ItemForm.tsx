@@ -1,4 +1,5 @@
 import { SearchableSelect } from "./SearchableSelect";
+import { SubmitButton } from "./SubmitButton";
 import type { Category, Item } from "@/lib/db/types";
 
 export function ItemForm({
@@ -81,12 +82,9 @@ export function ItemForm({
         </div>
       </div>
 
-      <button
-        type="submit"
-        className="h-11 w-full rounded-sm bg-accent px-4 text-sm font-caption font-semibold text-white hover:bg-accent-light"
-      >
-        {submitLabel}
-      </button>
+      <SubmitButton className="h-11 w-full rounded-sm bg-accent px-4 text-sm font-caption font-semibold text-white hover:bg-accent-light">
+        {(pending) => (pending ? "處理緊…" : submitLabel)}
+      </SubmitButton>
     </form>
   );
 }

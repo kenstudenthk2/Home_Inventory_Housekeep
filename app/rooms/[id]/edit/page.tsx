@@ -3,6 +3,7 @@ import { listRoomTypes, loadSuggestionMap } from "@/lib/db/libraries";
 import { getRoom } from "@/lib/db/rooms";
 import { updateRoomAction, deleteRoomAction } from "@/app/actions/rooms";
 import { RoomForm } from "@/components/RoomForm";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const dynamic = "force-dynamic";
 
@@ -29,9 +30,9 @@ export default async function EditRoomPage({ params }: { params: Promise<{ id: s
 
       <form action={deleteRoomAction} className="border-t border-border pt-6">
         <input type="hidden" name="id" value={room.id} />
-        <button type="submit" className="text-sm font-caption text-red-600 hover:underline">
-          刪除呢個房間(連同入面所有傢俬同物品)
-        </button>
+        <SubmitButton className="text-sm font-caption text-red-600 hover:underline">
+          {(pending) => (pending ? "刪除緊…" : "刪除呢個房間(連同入面所有傢俬同物品)")}
+        </SubmitButton>
       </form>
     </div>
   );
