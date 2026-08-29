@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Home, Search, Menu, X } from "lucide-react";
+import { Home, Search } from "lucide-react";
+import { Sidebar } from "./Sidebar";
+import type { Room } from "@/lib/db/types";
 
-export function AppHeader() {
+export function AppHeader({ rooms }: { rooms: Pick<Room, "id" | "name">[] }) {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="border-b border-border bg-surface">
       <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3">
+        <Sidebar rooms={rooms} />
+
         <Link href="/" className="flex items-center gap-2 font-heading font-bold text-ink">
           <Home className="h-5 w-5" aria-hidden />
           <span className="hidden sm:inline">家居物品管理</span>
@@ -52,24 +55,10 @@ export function AppHeader() {
           <button
             type="button"
             aria-label="搜尋"
-            onClick={() => {
-              setMobileSearchOpen((v) => !v);
-              setMenuOpen(false);
-            }}
+            onClick={() => setMobileSearchOpen((v) => !v)}
             className="flex h-11 w-11 items-center justify-center rounded-sm bg-bg text-ink-muted"
           >
             <Search className="h-[18px] w-[18px]" aria-hidden />
-          </button>
-          <button
-            type="button"
-            aria-label="選單"
-            onClick={() => {
-              setMenuOpen((v) => !v);
-              setMobileSearchOpen(false);
-            }}
-            className="flex h-11 w-11 items-center justify-center rounded-sm bg-bg text-ink-muted"
-          >
-            {menuOpen ? <X className="h-[18px] w-[18px]" aria-hidden /> : <Menu className="h-[18px] w-[18px]" aria-hidden />}
           </button>
         </div>
       </div>
@@ -94,18 +83,6 @@ export function AppHeader() {
             />
           </div>
         </form>
-      )}
-
-      {menuOpen && (
-        <nav className="border-t border-border px-4 py-3 sm:hidden">
-          <Link
-            href="/items"
-            onClick={() => setMenuOpen(false)}
-            className="block py-2 text-sm font-caption text-ink"
-          >
-            全部物品
-          </Link>
-        </nav>
       )}
     </header>
   );
