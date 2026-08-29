@@ -31,7 +31,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="zh-Hant" className={`${funnelSans.variable} ${inter.variable} ${geist.variable}`}>
       <body className="min-h-screen bg-bg text-ink antialiased">
         <AppHeader rooms={rooms} />
-        <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+        <main className="px-4 py-6 lg:px-8">{children}</main>
       </body>
     </html>
   );

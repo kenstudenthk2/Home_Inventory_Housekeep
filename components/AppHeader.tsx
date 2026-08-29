@@ -11,7 +11,7 @@ export function AppHeader({ rooms }: { rooms: Pick<Room, "id" | "name">[] }) {
 
   return (
     <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3">
+      <div className="flex items-center gap-4 px-4 py-3 lg:px-8">
         <Sidebar rooms={rooms} />
 
         <Link href="/" className="flex items-center gap-2 font-heading font-bold text-ink">
