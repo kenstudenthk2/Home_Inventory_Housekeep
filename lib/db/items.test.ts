@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createRoom, deleteRoom } from "./rooms";
 import { addFurnitureByName } from "./furniture";
 import { listCategories } from "./libraries";
-import { listItemsInFurniture, createItem, updateItem, deleteItem } from "./items";
+import { listItemsInFurniture, listItemsInRoom, createItem, updateItem, deleteItem } from "./items";
 
 let roomId: number;
 let furnitureId: number;
@@ -84,5 +84,18 @@ describe("items", () => {
     await deleteItem(item.id);
     const remaining = await listItemsInFurniture(furnitureId);
     expect(remaining.map((i) => i.id)).not.toContain(item.id);
+  });
+
+  it("lists every item across all furniture pieces in the room", async () => {
+    const otherFurnitureId = (await addFurnitureByName(roomId, `物品測試櫃二-${Date.now()}`)).id;
+    await createItem({ furnitureId: otherFurnitureId, name: "房間測試物品" });
+
+    const items = await listItemsInRoom(roomId);
+    const names = items.map((i) => i.name);
+    expect(names).toContain("罐頭");
+    expect(names).toContain("房間測試物品");
+    expect(items.every((i) => i.furnitureId === furnitureId || i.furnitureId === otherFurnitureId)).toBe(
+      true,
+    );
   });
 });

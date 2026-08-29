@@ -79,6 +79,17 @@ export async function listItemsInFurniture(furnitureId: number): Promise<Item[]>
   return (data as unknown as ItemRow[]).map(mapItem);
 }
 
+export async function listItemsInRoom(roomId: number): Promise<Item[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .select(`${SELECT},furniture!inner(room_id)`)
+    .eq("furniture.room_id", roomId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`讀取物品失敗:${error.message}`);
+  return (data as unknown as ItemRow[]).map(mapItem);
+}
+
 export async function createItem(input: ItemInput): Promise<Item> {
   const payload = {
     furniture_id: input.furnitureId,
