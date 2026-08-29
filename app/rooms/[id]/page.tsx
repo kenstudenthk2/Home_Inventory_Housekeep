@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { getRoom } from "@/lib/db/rooms";
 import { listFurnitureInRoom } from "@/lib/db/furniture";
+import { getRoomItemSummary } from "@/lib/db/items";
 import { addFurnitureAction, deleteFurnitureAction } from "@/app/actions/furniture";
 import { FurnitureIcon } from "@/components/FurnitureIcon";
 import { SubmitButton } from "@/components/SubmitButton";
+import { RoomItemSummary } from "@/components/RoomItemSummary";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +16,10 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
   const room = await getRoom(Number(id));
   if (!room) notFound();
 
-  const furniture = await listFurnitureInRoom(room.id);
+  const [furniture, itemSummary] = await Promise.all([
+    listFurnitureInRoom(room.id),
+    getRoomItemSummary(room.id),
+  ]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -30,6 +35,8 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
           編輯房間
         </Link>
       </div>
+
+      <RoomItemSummary items={itemSummary} />
 
       <section>
         <h2 className="mb-3 font-heading font-semibold text-ink">傢俬({furniture.length})</h2>

@@ -116,6 +116,31 @@ export async function updateItem(
   return mapItem(data as unknown as ItemRow);
 }
 
+export type RoomItemSummary = { name: string; totalQuantity: number };
+
+/** Combines same-named items across every piece of furniture in a room (e.g. two boxes each holding USB cables). */
+export async function getRoomItemSummary(roomId: number): Promise<RoomItemSummary[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .select("name,quantity,furniture!inner(room_id)")
+    .eq("furniture.room_id", roomId);
+  if (error) throw new Error(`讀取物品總覽失敗:${error.message}`);
+
+  const totals = new Map<string, RoomItemSummary>();
+  for (const row of data as unknown as { name: string; quantity: number }[]) {
+    const trimmedName = row.name.trim();
+    const key = trimmedName.toLowerCase();
+    const existing = totals.get(key);
+    if (existing) {
+      existing.totalQuantity += row.quantity;
+    } else {
+      totals.set(key, { name: trimmedName, totalQuantity: row.quantity });
+    }
+  }
+  return Array.from(totals.values()).sort((a, b) => b.totalQuantity - a.totalQuantity);
+}
+
 export async function deleteItem(id: number): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.from("items").delete().eq("id", id);
