@@ -57,14 +57,9 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
                   <SubmitButton
                     className="rounded-sm p-2 text-ink-faint hover:bg-red-50 hover:text-red-600"
                     aria-label={`刪除${item.displayName}`}
+                    pendingChildren={<Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
                   >
-                    {(pending) =>
-                      pending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      ) : (
-                        <Trash2 className="h-4 w-4" aria-hidden />
-                      )
-                    }
+                    <Trash2 className="h-4 w-4" aria-hidden />
                   </SubmitButton>
                 </form>
               </li>
@@ -86,20 +81,17 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
               required
             />
           </div>
-          <SubmitButton className="inline-flex h-11 items-center justify-center gap-1 rounded-sm bg-accent px-3 text-sm font-caption font-semibold text-white hover:bg-accent-light">
-            {(pending) =>
-              pending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                  新增緊…
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4" aria-hidden />
-                  新增
-                </>
-              )
+          <SubmitButton
+            className="inline-flex h-11 items-center justify-center gap-1 rounded-sm bg-accent px-3 text-sm font-caption font-semibold text-white hover:bg-accent-light"
+            pendingChildren={
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                新增緊…
+              </>
             }
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            新增
           </SubmitButton>
         </form>
       </section>

@@ -30,8 +30,8 @@ export default async function EditRoomPage({ params }: { params: Promise<{ id: s
 
       <form action={deleteRoomAction} className="border-t border-border pt-6">
         <input type="hidden" name="id" value={room.id} />
-        <SubmitButton className="text-sm font-caption text-red-600 hover:underline">
-          {(pending) => (pending ? "刪除緊…" : "刪除呢個房間(連同入面所有傢俬同物品)")}
+        <SubmitButton className="text-sm font-caption text-red-600 hover:underline" pendingChildren="刪除緊…">
+          刪除呢個房間(連同入面所有傢俬同物品)
         </SubmitButton>
       </form>
     </div>

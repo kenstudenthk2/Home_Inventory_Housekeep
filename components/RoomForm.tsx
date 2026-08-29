@@ -65,8 +65,11 @@ export function RoomForm({
         </div>
       </fieldset>
 
-      <SubmitButton className="h-11 w-full rounded-sm bg-accent px-4 text-sm font-caption font-semibold text-white hover:bg-accent-light">
-        {(pending) => (pending ? "處理緊…" : submitLabel)}
+      <SubmitButton
+        className="h-11 w-full rounded-sm bg-accent px-4 text-sm font-caption font-semibold text-white hover:bg-accent-light"
+        pendingChildren="處理緊…"
+      >
+        {submitLabel}
       </SubmitButton>
     </form>
   );

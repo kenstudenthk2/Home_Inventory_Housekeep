@@ -3,11 +3,11 @@
 import { useFormStatus } from "react-dom";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children" | "type"> & {
-  children: ReactNode | ((pending: boolean) => ReactNode);
+type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> & {
+  pendingChildren?: ReactNode;
 };
 
-export function SubmitButton({ children, className, ...props }: Props) {
+export function SubmitButton({ children, pendingChildren, className, ...props }: Props) {
   const { pending } = useFormStatus();
 
   return (
@@ -18,7 +18,7 @@ export function SubmitButton({ children, className, ...props }: Props) {
       className={`${className ?? ""} ${pending ? "opacity-60" : ""}`}
       {...props}
     >
-      {typeof children === "function" ? children(pending) : children}
+      {pending ? (pendingChildren ?? children) : children}
     </button>
   );
 }

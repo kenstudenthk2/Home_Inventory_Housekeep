@@ -17,8 +17,8 @@ export function ItemRow({ item, furnitureId }: { item: Item; furnitureId: number
       <form action={deleteItemAction} className="ml-auto">
         <input type="hidden" name="id" value={item.id} />
         <input type="hidden" name="furnitureId" value={furnitureId} />
-        <SubmitButton className="text-xs font-caption text-red-600 hover:underline">
-          {(pending) => (pending ? "刪除緊…" : "刪除")}
+        <SubmitButton className="text-xs font-caption text-red-600 hover:underline" pendingChildren="刪除緊…">
+          刪除
         </SubmitButton>
       </form>
     </li>
