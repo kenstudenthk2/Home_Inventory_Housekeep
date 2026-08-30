@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createRoom, deleteRoom } from "./rooms";
 import { addFurnitureByName } from "./furniture";
+import { addDrawer } from "./drawers";
 import { createItem } from "./items";
 import { listInventory, listExpiringItems, expiryStatusOf } from "./inventory";
 
@@ -79,6 +80,24 @@ describe("listInventory", () => {
     const rows = await listInventory({ roomId, sort: "expiry" });
     expect(rows[0].itemName).toBe(`過期奶-${stamp}`);
     expect(rows[rows.length - 1].itemName).toBe(`無期電芯-${stamp}`);
+  });
+
+  it("carries the drawer name when an item is scoped to one", async () => {
+    const drawerRoomId = (await createRoom({ name: `清單抽屜房-${stamp}` })).id;
+    const drawerFurnitureId = (await addFurnitureByName(drawerRoomId, `清單抽屜櫃-${stamp}`)).id;
+    const drawer = await addDrawer(drawerFurnitureId, "抽屜A");
+    await createItem({ furnitureId: drawerFurnitureId, drawerId: drawer.id, name: `抽屜物品-${stamp}` });
+
+    const rows = await listInventory({ roomId: drawerRoomId });
+    expect(rows[0].drawerId).toBe(drawer.id);
+    expect(rows[0].drawerName).toBe("抽屜A");
+
+    await deleteRoom(drawerRoomId);
+  });
+
+  it("has null drawer info for items directly on furniture", async () => {
+    const rows = await listInventory({ roomId, furnitureId });
+    expect(rows.every((r) => r.drawerId === null && r.drawerName === null)).toBe(true);
   });
 });
 

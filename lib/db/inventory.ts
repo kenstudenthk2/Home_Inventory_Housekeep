@@ -7,6 +7,8 @@ export type InventoryRow = {
   expiryDate: string | null;
   categoryId: number | null;
   categoryName: string | null;
+  drawerId: number | null;
+  drawerName: string | null;
   furnitureId: number;
   furnitureName: string;
   roomId: number;
@@ -52,6 +54,8 @@ type Row = {
   expiry_date: string | null;
   category_id: number | null;
   categories: { name: string } | null;
+  drawer_id: number | null;
+  drawers: { name: string } | null;
   furniture: {
     id: number;
     custom_name: string | null;
@@ -61,8 +65,9 @@ type Row = {
 };
 
 const SELECT = `
-  id,name,quantity,expiry_date,category_id,
+  id,name,quantity,expiry_date,category_id,drawer_id,
   categories(name),
+  drawers(name),
   furniture!inner(id,custom_name,furniture_types(name),rooms!inner(id,name))
 `;
 
@@ -74,6 +79,8 @@ function mapRow(row: Row): InventoryRow {
     expiryDate: row.expiry_date,
     categoryId: row.category_id,
     categoryName: row.categories?.name ?? null,
+    drawerId: row.drawer_id,
+    drawerName: row.drawers?.name ?? null,
     furnitureId: row.furniture?.id ?? 0,
     furnitureName:
       row.furniture?.custom_name ?? row.furniture?.furniture_types?.name ?? "未命名傢俬",
