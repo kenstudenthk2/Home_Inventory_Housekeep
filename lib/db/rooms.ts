@@ -8,6 +8,8 @@ export type RoomInput = {
   lengthCm?: number | null;
 };
 
+export const UNASSIGNED_ROOM_NAME = "未分類";
+
 export type RoomSummary = Room & { furnitureCount: number; itemCount: number };
 
 type RoomRow = {
@@ -62,6 +64,7 @@ export async function listRooms(): Promise<RoomSummary[]> {
   if (error) throw new Error(`讀取房間失敗:${error.message}`);
 
   return (data as unknown as (RoomRow & { furniture: { id: number; items: { id: number }[] }[] })[])
+    .filter((row) => row.name !== UNASSIGNED_ROOM_NAME)
     .map((row) => ({
       ...mapRoom(row),
       furnitureCount: row.furniture.length,
@@ -97,6 +100,18 @@ export async function updateRoom(id: number, input: RoomInput): Promise<Room> {
     .single();
   if (error) throw new Error(`更新房間失敗:${error.message}`);
   return mapRoom(data as unknown as RoomRow);
+}
+
+export async function findOrCreateUnassignedRoom(): Promise<Room> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("rooms")
+    .select(SELECT)
+    .eq("name", UNASSIGNED_ROOM_NAME)
+    .maybeSingle();
+  if (error) throw new Error(`讀取未分類房間失敗:${error.message}`);
+  if (data) return mapRoom(data as unknown as RoomRow);
+  return createRoom({ name: UNASSIGNED_ROOM_NAME });
 }
 
 export async function deleteRoom(id: number): Promise<void> {

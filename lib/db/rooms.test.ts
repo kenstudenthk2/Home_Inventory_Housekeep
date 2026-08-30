@@ -1,5 +1,13 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { listRooms, getRoom, createRoom, updateRoom, deleteRoom } from "./rooms";
+import {
+  listRooms,
+  getRoom,
+  createRoom,
+  updateRoom,
+  deleteRoom,
+  findOrCreateUnassignedRoom,
+  UNASSIGNED_ROOM_NAME,
+} from "./rooms";
 import { listRoomTypes } from "./libraries";
 
 const created: number[] = [];
@@ -70,5 +78,20 @@ describe("rooms", () => {
     const room = await createRoom({ name: `刪除-${Date.now()}` });
     await deleteRoom(room.id);
     expect(await getRoom(room.id)).toBeNull();
+  });
+});
+
+describe("findOrCreateUnassignedRoom", () => {
+  it("creates the hidden room once and reuses it on later calls", async () => {
+    const first = await findOrCreateUnassignedRoom();
+    const second = await findOrCreateUnassignedRoom();
+    expect(first.id).toBe(second.id);
+    expect(first.name).toBe(UNASSIGNED_ROOM_NAME);
+  });
+
+  it("is excluded from listRooms", async () => {
+    await findOrCreateUnassignedRoom();
+    const names = (await listRooms()).map((r) => r.name);
+    expect(names).not.toContain(UNASSIGNED_ROOM_NAME);
   });
 });
