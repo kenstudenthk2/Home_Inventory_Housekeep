@@ -22,9 +22,18 @@ export type Furniture = {
   iconKey: string;
 };
 
+export type Drawer = {
+  id: number;
+  furnitureId: number;
+  name: string;
+  sortOrder: number;
+};
+
 export type Item = {
   id: number;
   furnitureId: number;
+  drawerId: number | null;
+  drawerName: string | null;
   categoryId: number | null;
   categoryName: string | null;
   name: string;

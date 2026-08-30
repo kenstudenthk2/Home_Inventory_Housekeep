@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createRoom, deleteRoom } from "./rooms";
 import { addFurnitureByName } from "./furniture";
+import { addDrawer } from "./drawers";
 import { listCategories } from "./libraries";
 import { listItemsInFurniture, listItemsInRoom, createItem, updateItem, deleteItem } from "./items";
 
@@ -74,9 +75,46 @@ describe("items", () => {
 
   it("updates an item", async () => {
     const item = await createItem({ furnitureId, name: "更新前", quantity: 2 });
-    const updated = await updateItem(item.id, { name: "更新後", quantity: 5, expiryDate: null });
+    const updated = await updateItem(item.id, furnitureId, {
+      name: "更新後",
+      quantity: 5,
+      expiryDate: null,
+    });
     expect(updated.name).toBe("更新後");
     expect(updated.quantity).toBe(5);
+  });
+
+  it("allows an item directly on furniture with no drawers", async () => {
+    const item = await createItem({ furnitureId, name: "冇格嘅嘢" });
+    expect(item.drawerId).toBeNull();
+    expect(item.drawerName).toBeNull();
+  });
+
+  it("requires a drawer once the furniture has any", async () => {
+    const drawerRoomId = (await createRoom({ name: `有格測試房-${Date.now()}` })).id;
+    const drawerFurnitureId = (await addFurnitureByName(drawerRoomId, `有格測試櫃-${Date.now()}`)).id;
+    await addDrawer(drawerFurnitureId, "第一格");
+
+    await expect(
+      createItem({ furnitureId: drawerFurnitureId, name: "冇揀格" }),
+    ).rejects.toThrow(/櫃桶/);
+
+    await deleteRoom(drawerRoomId);
+  });
+
+  it("creates and reads back an item scoped to a drawer", async () => {
+    const drawerRoomId = (await createRoom({ name: `有格測試房二-${Date.now()}` })).id;
+    const drawerFurnitureId = (await addFurnitureByName(drawerRoomId, `有格測試櫃二-${Date.now()}`)).id;
+    const drawer = await addDrawer(drawerFurnitureId, "第一格");
+
+    const item = await createItem({ furnitureId: drawerFurnitureId, drawerId: drawer.id, name: "格入面" });
+    expect(item.drawerId).toBe(drawer.id);
+    expect(item.drawerName).toBe("第一格");
+
+    const scoped = await listItemsInFurniture(drawerFurnitureId, drawer.id);
+    expect(scoped.map((i) => i.id)).toContain(item.id);
+
+    await deleteRoom(drawerRoomId);
   });
 
   it("deletes an item", async () => {

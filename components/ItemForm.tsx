@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { SearchableSelect } from "./SearchableSelect";
 import { SubmitButton } from "./SubmitButton";
-import type { Category, Item } from "@/lib/db/types";
+import type { Category, Drawer, Item } from "@/lib/db/types";
 
 function ItemNameComboBox({
   suggestions,
@@ -58,6 +58,8 @@ function ItemNameComboBox({
 
 export function ItemForm({
   furnitureId,
+  drawers,
+  defaultDrawerId,
   categories,
   itemNamesByCategoryId,
   item,
@@ -65,6 +67,9 @@ export function ItemForm({
   submitLabel,
 }: {
   furnitureId: number;
+  drawers: Drawer[];
+  /** Preselect a drawer on the create form (e.g. the one currently being viewed). Ignored when editing an existing item. */
+  defaultDrawerId?: number | null;
   categories: Category[];
   itemNamesByCategoryId: Record<number, string[]>;
   item?: Item;
@@ -73,6 +78,7 @@ export function ItemForm({
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(item?.categoryId ?? null);
   const nameInputId = `name-${item?.id ?? "new"}`;
+  const drawerInputId = `drawerId-${item?.id ?? "new"}`;
 
   return (
     <form
@@ -81,6 +87,30 @@ export function ItemForm({
     >
       <input type="hidden" name="furnitureId" value={furnitureId} />
       {item && <input type="hidden" name="id" value={item.id} />}
+
+      {drawers.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <label htmlFor={drawerInputId} className="text-sm font-caption font-medium text-ink-muted">
+            擺喺邊個櫃桶
+          </label>
+          <select
+            id={drawerInputId}
+            name="drawerId"
+            required
+            defaultValue={item?.drawerId ?? defaultDrawerId ?? ""}
+            className="rounded-sm border border-border-input px-3 py-2 text-base sm:text-sm"
+          >
+            <option value="" disabled>
+              揀一個櫃桶…
+            </option>
+            {drawers.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <SearchableSelect
         name="category"

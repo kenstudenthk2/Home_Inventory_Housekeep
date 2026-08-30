@@ -23,6 +23,7 @@ export function ItemRow({ item, furnitureId }: { item: Item; furnitureId: number
           <input type="hidden" name="id" value={item.id} />
           <input type="hidden" name="furnitureId" value={furnitureId} />
           <input type="hidden" name="name" value={item.name} />
+          {item.drawerId != null && <input type="hidden" name="drawerId" value={item.drawerId} />}
           {item.categoryId != null && <input type="hidden" name="categoryId" value={item.categoryId} />}
           {item.expiryDate && <input type="hidden" name="expiryDate" value={item.expiryDate} />}
           <input
@@ -56,6 +57,11 @@ export function ItemRow({ item, furnitureId }: { item: Item; furnitureId: number
         </button>
       )}
 
+      {item.drawerName && (
+        <span className="rounded-full bg-surface-sage px-2 py-0.5 text-xs font-caption text-ink-muted">
+          {item.drawerName}
+        </span>
+      )}
       {item.categoryName && (
         <span className="rounded-full bg-surface-mist px-2 py-0.5 text-xs font-caption text-ink-muted">
           {item.categoryName}

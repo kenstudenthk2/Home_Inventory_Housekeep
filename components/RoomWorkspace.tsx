@@ -1,39 +1,66 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, X } from "lucide-react";
 import { FurnitureIcon } from "./FurnitureIcon";
 import { SubmitButton } from "./SubmitButton";
 import { ItemRow } from "./ItemRow";
 import { ItemForm } from "./ItemForm";
 import { addFurnitureAction, deleteFurnitureAction } from "@/app/actions/furniture";
+import { addDrawerAction, deleteDrawerAction } from "@/app/actions/drawers";
 import { createItemAction } from "@/app/actions/items";
-import type { Category, Item } from "@/lib/db/types";
+import type { Category, Drawer, Item } from "@/lib/db/types";
 import type { FurnitureSummary } from "@/lib/db/furniture";
+
+type DrawerTab = { id: number | null; name: string };
 
 export function RoomWorkspace({
   roomId,
   furniture,
   itemsByFurnitureId,
+  drawersByFurnitureId,
   categories,
   itemNamesByCategoryId,
 }: {
   roomId: number;
   furniture: FurnitureSummary[];
   itemsByFurnitureId: Record<number, Item[]>;
+  drawersByFurnitureId: Record<number, Drawer[]>;
   categories: Category[];
   itemNamesByCategoryId: Record<number, string[]>;
 }) {
   const [selectedFurnitureId, setSelectedFurnitureId] = useState<number | null>(
     furniture[0]?.id ?? null,
   );
+  // undefined = no explicit choice yet (fall back to the first tab); a real tab keeps its own id.
+  const [selectedDrawerId, setSelectedDrawerId] = useState<number | null | undefined>(undefined);
 
   const activeFurnitureId =
     selectedFurnitureId !== null && furniture.some((f) => f.id === selectedFurnitureId)
       ? selectedFurnitureId
       : (furniture[0]?.id ?? null);
   const activeFurniture = furniture.find((f) => f.id === activeFurnitureId) ?? null;
-  const activeItems = activeFurniture ? (itemsByFurnitureId[activeFurniture.id] ?? []) : [];
+  const activeDrawers = activeFurniture ? (drawersByFurnitureId[activeFurniture.id] ?? []) : [];
+  const furnitureItems = activeFurniture ? (itemsByFurnitureId[activeFurniture.id] ?? []) : [];
+  const hasDrawers = activeDrawers.length > 0;
+  // Items created before this furniture had any drawer stay visible under their own tab, never silently hidden.
+  const hasUnfiledItems = hasDrawers && furnitureItems.some((i) => i.drawerId === null);
+
+  const drawerTabs: DrawerTab[] = hasDrawers
+    ? [
+        ...activeDrawers.map((d) => ({ id: d.id, name: d.name })),
+        ...(hasUnfiledItems ? [{ id: null, name: "未分類" }] : []),
+      ]
+    : [];
+  const activeDrawerId = hasDrawers
+    ? (drawerTabs.some((t) => t.id === selectedDrawerId) ? (selectedDrawerId as number | null) : drawerTabs[0].id)
+    : null;
+
+  const activeItems = !activeFurniture
+    ? []
+    : hasDrawers
+      ? furnitureItems.filter((i) => i.drawerId === activeDrawerId)
+      : furnitureItems;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -44,6 +71,59 @@ export function RoomWorkspace({
 
         {activeFurniture ? (
           <>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              {drawerTabs.map((tab) => (
+                <div key={tab.id ?? "unfiled"} className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDrawerId(tab.id)}
+                    aria-pressed={tab.id === activeDrawerId}
+                    className={`rounded-full px-3 py-1 text-xs font-caption transition-colors duration-150 ease ${
+                      tab.id === activeDrawerId
+                        ? "bg-accent text-white"
+                        : "bg-surface-mist text-ink-muted hover:bg-surface-sage"
+                    }`}
+                  >
+                    {tab.name}
+                  </button>
+                  {tab.id !== null && (
+                    <form action={deleteDrawerAction}>
+                      <input type="hidden" name="id" value={tab.id} />
+                      <input type="hidden" name="furnitureId" value={activeFurniture.id} />
+                      <SubmitButton
+                        aria-label={`刪除${tab.name}`}
+                        className="ml-0.5 flex h-6 w-6 items-center justify-center rounded-full text-ink-faint hover:bg-red-50 hover:text-red-600"
+                        pendingChildren={<Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
+                      >
+                        <X className="h-3 w-3" aria-hidden />
+                      </SubmitButton>
+                    </form>
+                  )}
+                </div>
+              ))}
+
+              <form action={addDrawerAction} className="flex items-center gap-1">
+                <input type="hidden" name="furnitureId" value={activeFurniture.id} />
+                <label htmlFor="drawerName" className="sr-only">
+                  新增櫃桶
+                </label>
+                <input
+                  id="drawerName"
+                  name="name"
+                  placeholder="新增櫃桶…"
+                  required
+                  className="w-24 rounded-full border border-border-input px-2.5 py-1 text-xs sm:w-28"
+                />
+                <SubmitButton
+                  aria-label="新增櫃桶"
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white transition-[transform,background-color] duration-150 ease-out hover:bg-accent-light active:scale-[0.97] motion-reduce:transition-none"
+                  pendingChildren={<Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
+                >
+                  <Plus className="h-3 w-3" aria-hidden />
+                </SubmitButton>
+              </form>
+            </div>
+
             {activeItems.length === 0 ? (
               <p className="mb-4 rounded-md border border-dashed border-border p-6 text-center font-caption text-ink-faint">
                 仲未有物品。
@@ -57,8 +137,10 @@ export function RoomWorkspace({
             )}
 
             <ItemForm
-              key={activeFurniture.id}
+              key={`${activeFurniture.id}-${activeDrawerId ?? "none"}`}
               furnitureId={activeFurniture.id}
+              drawers={activeDrawers}
+              defaultDrawerId={activeDrawerId}
               categories={categories}
               itemNamesByCategoryId={itemNamesByCategoryId}
               action={createItemAction}

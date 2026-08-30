@@ -12,7 +12,7 @@ Primary user today is the project owner, managing their own home's inventory. Th
 
 ## Product Purpose
 
-Lets a household track what physical items it owns and where they are, organized as Room → Furniture → Item. Prevents duplicate purchases, surfaces items nearing or past their expiry date, and makes "where did I put X" answerable via global search.
+Lets a household track what physical items it owns and where they are, organized as Room → Furniture → (optional) Drawer → Item. Prevents duplicate purchases, surfaces items nearing or past their expiry date, and makes "where did I put X" answerable via global search.
 
 ## Positioning
 
@@ -22,7 +22,7 @@ Two shared, deduplicating global libraries — `furniture_types` and `categories
 
 - Mobile-first: the spec's mobile display rules treat phone width (<640px) as the baseline layout, with tablet/desktop as progressive enhancement (`sm:`/`lg:` breakpoints).
 - v1 is a single shared space with no login/accounts — anyone with access to the deployment sees and edits the same inventory.
-- Core flow: create a room → add furniture (optionally from room-type-suggested defaults) → log items on that furniture (name, category, quantity, optional expiry date).
+- Core flow: create a room → add furniture (optionally from room-type-suggested defaults) → optionally split that furniture into named drawers → log items on the furniture, or on one of its drawers once it has any (name, category, quantity, optional expiry date).
 - Global search and the all-items overview page are the two ways to answer "where is X" or "what needs replacing soon."
 
 ## Capabilities and Constraints
@@ -31,7 +31,7 @@ Two shared, deduplicating global libraries — `furniture_types` and `categories
 - No AI-driven placement suggestions in v1 — planned as an independent phase 2 project (LLM analyzes room dimensions + furniture + item counts to suggest better placement), with its own spec.
 - No custom furniture photos/images in v1 — furniture types use a fixed icon set only.
 - Room `width_cm`/`length_cm` are optional today specifically to support the future AI placement-suggestion feature; they are not used for anything else yet.
-- Terminology: "Furniture" is an instance placed in a room (may have a custom name); "furniture type" is the shared library entry it's based on. "Category" is the shared library entry an item belongs to.
+- Terminology: "Furniture" is an instance placed in a room (may have a custom name); "furniture type" is the shared library entry it's based on. "Category" is the shared library entry an item belongs to. "Drawer" is a free-text named sub-container scoped to one specific furniture instance (e.g. "襪褲格") — unlike furniture types/categories it is not a shared global library, since a drawer only makes sense in the context of the one piece of furniture it belongs to. A furniture piece with zero drawers behaves exactly as before (items attach to it directly); once it has any drawers, items must be placed in a specific one.
 
 ## Evidence on Hand
 

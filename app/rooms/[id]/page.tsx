@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { getRoom } from "@/lib/db/rooms";
 import { listFurnitureInRoom } from "@/lib/db/furniture";
 import { getRoomItemSummary, listItemsInRoom, groupItemNamesByCategoryId } from "@/lib/db/items";
+import { listDrawersInRoom } from "@/lib/db/drawers";
 import { listCategories } from "@/lib/db/libraries";
 import { RoomItemSummary } from "@/components/RoomItemSummary";
 import { RoomWorkspace } from "@/components/RoomWorkspace";
-import type { Item } from "@/lib/db/types";
+import type { Drawer, Item } from "@/lib/db/types";
 
 export const dynamic = "force-dynamic";
 
@@ -18,15 +19,24 @@ function groupByFurnitureId(items: Item[]): Record<number, Item[]> {
   return grouped;
 }
 
+function groupDrawersByFurnitureId(drawers: Drawer[]): Record<number, Drawer[]> {
+  const grouped: Record<number, Drawer[]> = {};
+  for (const drawer of drawers) {
+    (grouped[drawer.furnitureId] ??= []).push(drawer);
+  }
+  return grouped;
+}
+
 export default async function RoomPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const room = await getRoom(Number(id));
   if (!room) notFound();
 
-  const [furniture, itemSummary, items, categories, itemNamesByCategoryId] = await Promise.all([
+  const [furniture, itemSummary, items, drawers, categories, itemNamesByCategoryId] = await Promise.all([
     listFurnitureInRoom(room.id),
     getRoomItemSummary(room.id),
     listItemsInRoom(room.id),
+    listDrawersInRoom(room.id),
     listCategories(),
     groupItemNamesByCategoryId(),
   ]);
@@ -52,6 +62,7 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
         roomId={room.id}
         furniture={furniture}
         itemsByFurnitureId={groupByFurnitureId(items)}
+        drawersByFurnitureId={groupDrawersByFurnitureId(drawers)}
         categories={categories}
         itemNamesByCategoryId={itemNamesByCategoryId}
       />

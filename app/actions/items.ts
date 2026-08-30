@@ -17,6 +17,7 @@ export async function createItemAction(formData: FormData) {
   const furniture = await getFurniture(furnitureId);
   await createItem({
     furnitureId,
+    drawerId: optionalNumber(formData, "drawerId"),
     name: requiredText(formData, "name"),
     quantity: optionalNumber(formData, "quantity") ?? 1,
     expiryDate: optionalText(formData, "expiryDate"),
@@ -33,7 +34,8 @@ export async function updateItemAction(formData: FormData) {
   const id = requiredNumber(formData, "id");
   const furnitureId = requiredNumber(formData, "furnitureId");
   const furniture = await getFurniture(furnitureId);
-  await updateItem(id, {
+  await updateItem(id, furnitureId, {
+    drawerId: optionalNumber(formData, "drawerId"),
     name: requiredText(formData, "name"),
     quantity: optionalNumber(formData, "quantity") ?? 1,
     expiryDate: optionalText(formData, "expiryDate"),

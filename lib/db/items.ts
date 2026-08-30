@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { findOrCreateCategory } from "./libraries";
+import { listDrawersForFurniture } from "./drawers";
 import type { Item } from "./types";
 
 export type ItemInput = {
   furnitureId: number;
+  /** Required once the target furniture has any drawers; must stay null/undefined otherwise. */
+  drawerId?: number | null;
   name: string;
   quantity?: number;
   categoryId?: number | null;
@@ -16,26 +19,40 @@ export type ItemInput = {
 type ItemRow = {
   id: number;
   furniture_id: number;
+  drawer_id: number | null;
   category_id: number | null;
   name: string;
   quantity: number;
   expiry_date: string | null;
   categories: { name: string } | null;
+  drawers: { name: string } | null;
 };
 
-const SELECT = "id,furniture_id,category_id,name,quantity,expiry_date,categories(name)";
+const SELECT =
+  "id,furniture_id,drawer_id,category_id,name,quantity,expiry_date,categories(name),drawers(name)";
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function mapItem(row: ItemRow): Item {
   return {
     id: row.id,
     furnitureId: row.furniture_id,
+    drawerId: row.drawer_id,
+    drawerName: row.drawers?.name ?? null,
     categoryId: row.category_id,
     categoryName: row.categories?.name ?? null,
     name: row.name,
     quantity: row.quantity,
     expiryDate: row.expiry_date,
   };
+}
+
+/** A furniture piece with any drawers requires items to name one; without drawers, drawerId must stay null. */
+async function resolveDrawerId(furnitureId: number, drawerId: number | null | undefined) {
+  const drawers = await listDrawersForFurniture(furnitureId);
+  if (drawers.length > 0 && (drawerId === null || drawerId === undefined)) {
+    throw new Error("呢件傢俬有櫃桶,加物品前要揀返一個櫃桶");
+  }
+  return drawerId ?? null;
 }
 
 function validateName(raw: string): string {
@@ -68,13 +85,16 @@ async function resolveCategoryId(input: Pick<ItemInput, "categoryId" | "category
   return input.categoryId ?? null;
 }
 
-export async function listItemsInFurniture(furnitureId: number): Promise<Item[]> {
+export async function listItemsInFurniture(
+  furnitureId: number,
+  drawerId?: number | null,
+): Promise<Item[]> {
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from("items")
-    .select(SELECT)
-    .eq("furniture_id", furnitureId)
-    .order("created_at", { ascending: true });
+  let query = supabase.from("items").select(SELECT).eq("furniture_id", furnitureId);
+  if (drawerId !== undefined) {
+    query = drawerId === null ? query.is("drawer_id", null) : query.eq("drawer_id", drawerId);
+  }
+  const { data, error } = await query.order("created_at", { ascending: true });
   if (error) throw new Error(`讀取物品失敗:${error.message}`);
   return (data as unknown as ItemRow[]).map(mapItem);
 }
@@ -93,6 +113,7 @@ export async function listItemsInRoom(roomId: number): Promise<Item[]> {
 export async function createItem(input: ItemInput): Promise<Item> {
   const payload = {
     furniture_id: input.furnitureId,
+    drawer_id: await resolveDrawerId(input.furnitureId, input.drawerId),
     name: validateName(input.name),
     quantity: validateQuantity(input.quantity),
     expiry_date: validateExpiryDate(input.expiryDate),
@@ -107,9 +128,11 @@ export async function createItem(input: ItemInput): Promise<Item> {
 
 export async function updateItem(
   id: number,
+  furnitureId: number,
   input: Omit<ItemInput, "furnitureId">,
 ): Promise<Item> {
   const payload = {
+    drawer_id: await resolveDrawerId(furnitureId, input.drawerId),
     name: validateName(input.name),
     quantity: validateQuantity(input.quantity),
     expiry_date: validateExpiryDate(input.expiryDate),
