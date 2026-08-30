@@ -40,7 +40,7 @@ export function ItemRow({ item, furnitureId }: { item: Item; furnitureId: number
           <button
             type="button"
             onClick={() => setIsEditingQuantity(false)}
-            className="text-xs font-caption text-ink-muted hover:underline"
+            className="text-xs font-caption text-ink-muted transition-colors duration-150 ease hover:underline"
           >
             取消
           </button>
@@ -49,7 +49,7 @@ export function ItemRow({ item, furnitureId }: { item: Item; furnitureId: number
         <button
           type="button"
           onClick={() => setIsEditingQuantity(true)}
-          className="text-sm font-caption text-ink-muted underline decoration-dotted hover:text-accent"
+          className="text-sm font-caption text-ink-muted underline decoration-dotted transition-colors duration-150 ease hover:text-accent"
           aria-label={`編輯${item.name}數量`}
         >
           × {item.quantity}

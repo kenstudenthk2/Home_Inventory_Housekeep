@@ -22,6 +22,9 @@
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 6px;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 body {

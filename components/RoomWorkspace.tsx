@@ -80,7 +80,7 @@ export function RoomWorkspace({
             {furniture.map((item) => (
               <li key={item.id}>
                 <div
-                  className={`flex items-center justify-between rounded-md border p-3 ${
+                  className={`flex items-center justify-between rounded-md border p-3 transition-colors duration-150 ease ${
                     item.id === activeFurniture?.id
                       ? "border-accent bg-surface-mist"
                       : "border-border bg-surface"
@@ -91,7 +91,7 @@ export function RoomWorkspace({
                     onClick={() => setSelectedFurnitureId(item.id)}
                     aria-pressed={item.id === activeFurniture?.id}
                     aria-label={`選擇${item.displayName}`}
-                    className="flex flex-1 items-center gap-3 text-left"
+                    className="flex flex-1 items-center gap-3 text-left transition-transform duration-150 ease-out active:scale-[0.99] motion-reduce:transition-none"
                   >
                     <FurnitureIcon iconKey={item.iconKey} className="h-5 w-5 text-ink-muted" />
                     <div>

@@ -41,13 +41,16 @@ export function AppHeader({ rooms }: { rooms: Pick<Room, "id" | "name">[] }) {
           </div>
           <button
             type="submit"
-            className="rounded-sm bg-accent px-3 py-1.5 text-sm font-caption font-semibold text-white hover:bg-accent-light"
+            className="rounded-sm bg-accent px-3 py-1.5 text-sm font-caption font-semibold text-white transition-[transform,background-color] duration-150 ease-out hover:bg-accent-light active:scale-[0.97] motion-reduce:transition-none"
           >
             搜尋
           </button>
         </form>
 
-        <Link href="/items" className="hidden text-sm font-caption text-ink-muted hover:text-ink sm:block">
+        <Link
+          href="/items"
+          className="hidden text-sm font-caption text-ink-muted transition-colors duration-150 ease hover:text-ink sm:block"
+        >
           全部物品
         </Link>
 
@@ -56,7 +59,7 @@ export function AppHeader({ rooms }: { rooms: Pick<Room, "id" | "name">[] }) {
             type="button"
             aria-label="搜尋"
             onClick={() => setMobileSearchOpen((v) => !v)}
-            className="flex h-11 w-11 items-center justify-center rounded-sm bg-bg text-ink-muted"
+            className="flex h-11 w-11 items-center justify-center rounded-sm bg-bg text-ink-muted transition-transform duration-150 ease-out active:scale-[0.97] motion-reduce:transition-none"
           >
             <Search className="h-[18px] w-[18px]" aria-hidden />
           </button>
