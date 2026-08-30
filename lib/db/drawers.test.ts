@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createRoom, deleteRoom } from "./rooms";
 import { addFurnitureByName } from "./furniture";
-import { listDrawersForFurniture, addDrawer, renameDrawer, deleteDrawer } from "./drawers";
+import { listDrawersForFurniture, addDrawer, renameDrawer, deleteDrawer, listAllDrawers } from "./drawers";
 import { createItem, listItemsInFurniture } from "./items";
 
 let roomId: number;
@@ -48,5 +48,11 @@ describe("drawers", () => {
     );
     const remaining = await listItemsInFurniture(furnitureId);
     expect(remaining.map((i) => i.id)).not.toContain(item.id);
+  });
+
+  it("lists every drawer across all furniture pieces", async () => {
+    const drawer = await addDrawer(furnitureId, `平鋪測試格-${Date.now()}`);
+    const all = await listAllDrawers();
+    expect(all.map((d) => d.id)).toContain(drawer.id);
   });
 });

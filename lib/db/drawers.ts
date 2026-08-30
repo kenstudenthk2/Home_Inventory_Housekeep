@@ -49,6 +49,17 @@ export async function listDrawersInRoom(roomId: number): Promise<Drawer[]> {
   return (data as unknown as DrawerRow[]).map(mapDrawer);
 }
 
+export async function listAllDrawers(): Promise<Drawer[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("drawers")
+    .select(SELECT)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`讀取櫃桶失敗:${error.message}`);
+  return (data as unknown as DrawerRow[]).map(mapDrawer);
+}
+
 export async function addDrawer(furnitureId: number, name: string): Promise<Drawer> {
   const supabase = createClient();
   const { data, error } = await supabase
