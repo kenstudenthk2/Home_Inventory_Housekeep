@@ -1,9 +1,12 @@
-import Link from "next/link";
 import { listInventory, type ExpiryStatus, type InventorySort } from "@/lib/db/inventory";
 import { listRooms } from "@/lib/db/rooms";
+import { listAllFurniture } from "@/lib/db/furniture";
+import { listAllDrawers } from "@/lib/db/drawers";
 import { listCategories } from "@/lib/db/libraries";
+import { groupItemNamesByCategoryId } from "@/lib/db/items";
 import { InventoryFilters } from "@/components/InventoryFilters";
-import { ExpiryBadge } from "@/components/ExpiryBadge";
+import { AddItemToggle } from "@/components/AddItemToggle";
+import { InventoryItemRow, InventoryItemTableRow } from "@/components/InventoryItemRow";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +25,7 @@ export default async function ItemsPage({
 }) {
   const params = await searchParams;
 
-  const [rows, rooms, categories] = await Promise.all([
+  const [rows, rooms, furniture, drawers, categories, itemNamesByCategoryId] = await Promise.all([
     listInventory({
       search: params.search,
       roomId: params.roomId ? Number(params.roomId) : undefined,
@@ -31,7 +34,10 @@ export default async function ItemsPage({
       sort: (params.sort as InventorySort) ?? "name",
     }),
     listRooms(),
+    listAllFurniture(),
+    listAllDrawers(),
     listCategories(),
+    groupItemNamesByCategoryId(),
   ]);
 
   const totalQuantity = rows.reduce((sum, r) => sum + r.quantity, 0);
@@ -39,6 +45,14 @@ export default async function ItemsPage({
   return (
     <div className="flex flex-col gap-5">
       <h1 className="font-heading text-xl font-extrabold text-ink">全部物品</h1>
+
+      <AddItemToggle
+        rooms={rooms}
+        furniture={furniture}
+        drawers={drawers}
+        categories={categories}
+        itemNamesByCategoryId={itemNamesByCategoryId}
+      />
 
       <InventoryFilters
         rooms={rooms}
@@ -64,34 +78,7 @@ export default async function ItemsPage({
         <>
           <ul className="flex flex-col gap-3 sm:hidden">
             {rows.map((row) => (
-              <li
-                key={row.itemId}
-                className="flex flex-col gap-1.5 rounded-md border border-border bg-surface p-3.5"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="flex-1 font-medium text-ink">{row.itemName}</span>
-                  <span className="text-sm font-caption text-ink-muted">× {row.quantity}</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-surface-mist px-2 py-0.5 text-xs font-caption text-ink-muted">
-                    {row.categoryName ?? "—"}
-                  </span>
-                  {row.expiryDate ? (
-                    <ExpiryBadge expiryDate={row.expiryDate} />
-                  ) : (
-                    <span className="text-xs font-caption text-ink-faint">—</span>
-                  )}
-                </div>
-                <p className="text-xs font-caption text-ink-faint">
-                  <Link href={`/rooms/${row.roomId}`} className="hover:underline">
-                    {row.roomName}
-                  </Link>
-                  {" · "}
-                  <Link href={`/furniture/${row.furnitureId}`} className="hover:underline">
-                    {row.furnitureName}
-                  </Link>
-                </p>
-              </li>
+              <InventoryItemRow key={row.itemId} row={row} rooms={rooms} furniture={furniture} drawers={drawers} />
             ))}
           </ul>
 
@@ -104,28 +91,12 @@ export default async function ItemsPage({
                   <th className="px-4 py-2 font-caption font-medium text-ink">分類</th>
                   <th className="px-4 py-2 font-caption font-medium text-ink">位置</th>
                   <th className="px-4 py-2 font-caption font-medium text-ink">到期日</th>
+                  <th className="px-4 py-2 font-caption font-medium text-ink">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.itemId} className="border-b border-border last:border-0">
-                    <td className="px-4 py-2 font-medium text-ink">{row.itemName}</td>
-                    <td className="px-4 py-2 font-caption text-ink-muted">{row.quantity}</td>
-                    <td className="px-4 py-2 font-caption text-ink-muted">{row.categoryName ?? "—"}</td>
-                    <td className="px-4 py-2 font-caption text-ink-muted">
-                      <Link href={`/rooms/${row.roomId}`} className="hover:underline">
-                        {row.roomName}
-                      </Link>
-                      {" · "}
-                      <Link href={`/furniture/${row.furnitureId}`} className="hover:underline">
-                        {row.furnitureName}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-2">
-                      <ExpiryBadge expiryDate={row.expiryDate} />
-                      {!row.expiryDate && <span className="font-caption text-ink-faint">—</span>}
-                    </td>
-                  </tr>
+                  <InventoryItemTableRow key={row.itemId} row={row} rooms={rooms} furniture={furniture} drawers={drawers} />
                 ))}
               </tbody>
             </table>
