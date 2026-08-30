@@ -150,6 +150,27 @@ export async function updateItem(
   return mapItem(data as unknown as ItemRow);
 }
 
+export async function moveItemLocation(
+  id: number,
+  furnitureId: number,
+  drawerId?: number | null,
+): Promise<Item> {
+  const payload = {
+    furniture_id: furnitureId,
+    drawer_id: await resolveDrawerId(furnitureId, drawerId),
+  };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .update(payload)
+    .eq("id", id)
+    .select(SELECT)
+    .single();
+  if (error) throw new Error(`搬移物品失敗:${error.message}`);
+  return mapItem(data as unknown as ItemRow);
+}
+
 /** Existing item names grouped by category, for the add-item name combobox (trimmed, deduped case-insensitively). */
 export async function groupItemNamesByCategoryId(): Promise<Record<number, string[]>> {
   const supabase = createClient();

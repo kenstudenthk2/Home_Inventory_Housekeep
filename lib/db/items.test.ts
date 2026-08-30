@@ -3,7 +3,7 @@ import { createRoom, deleteRoom } from "./rooms";
 import { addFurnitureByName } from "./furniture";
 import { addDrawer } from "./drawers";
 import { listCategories } from "./libraries";
-import { listItemsInFurniture, listItemsInRoom, createItem, updateItem, deleteItem } from "./items";
+import { listItemsInFurniture, listItemsInRoom, createItem, updateItem, moveItemLocation, deleteItem } from "./items";
 
 let roomId: number;
 let furnitureId: number;
@@ -122,6 +122,30 @@ describe("items", () => {
     await deleteItem(item.id);
     const remaining = await listItemsInFurniture(furnitureId);
     expect(remaining.map((i) => i.id)).not.toContain(item.id);
+  });
+
+  it("moves an item to another furniture piece with no drawers", async () => {
+    const moveRoomId = (await createRoom({ name: `搬移測試房-${Date.now()}` })).id;
+    const moveFurnitureId = (await addFurnitureByName(moveRoomId, `搬移源櫃-${Date.now()}`)).id;
+    const otherFurnitureId = (await addFurnitureByName(moveRoomId, `搬移目標櫃-${Date.now()}`)).id;
+    const item = await createItem({ furnitureId: moveFurnitureId, name: "待搬移" });
+
+    const moved = await moveItemLocation(item.id, otherFurnitureId, null);
+    expect(moved.furnitureId).toBe(otherFurnitureId);
+    expect(moved.drawerId).toBeNull();
+
+    await deleteRoom(moveRoomId);
+  });
+
+  it("requires a drawer when moving into furniture that has one", async () => {
+    const drawerRoomId = (await createRoom({ name: `搬移有格房-${Date.now()}` })).id;
+    const drawerFurnitureId = (await addFurnitureByName(drawerRoomId, `搬移有格櫃-${Date.now()}`)).id;
+    await addDrawer(drawerFurnitureId, "第一格");
+    const item = await createItem({ furnitureId, name: "待搬移二" });
+
+    await expect(moveItemLocation(item.id, drawerFurnitureId, null)).rejects.toThrow(/櫃桶/);
+
+    await deleteRoom(drawerRoomId);
   });
 
   it("lists every item across all furniture pieces in the room", async () => {
