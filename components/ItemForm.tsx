@@ -88,60 +88,64 @@ export function ItemForm({
       <input type="hidden" name="furnitureId" value={furnitureId} />
       {item && <input type="hidden" name="id" value={item.id} />}
 
-      {drawers.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <label htmlFor={drawerInputId} className="text-sm font-caption font-medium text-ink-muted">
-            擺喺邊個櫃桶
-          </label>
-          <select
-            id={drawerInputId}
-            name="drawerId"
-            required
-            defaultValue={item?.drawerId ?? defaultDrawerId ?? ""}
-            className="rounded-sm border border-border-input px-3 py-2 text-base sm:text-sm"
-          >
-            <option value="" disabled>
-              揀一個櫃桶…
-            </option>
-            {drawers.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
+      <div className="flex flex-col gap-3 sm:flex-row">
+        {drawers.length > 0 && (
+          <div className="flex flex-1 flex-col gap-1">
+            <label htmlFor={drawerInputId} className="text-sm font-caption font-medium text-ink-muted">
+              擺喺邊個櫃桶
+            </label>
+            <select
+              id={drawerInputId}
+              name="drawerId"
+              required
+              defaultValue={item?.drawerId ?? defaultDrawerId ?? ""}
+              className="rounded-sm border border-border-input px-3 py-2 text-base sm:text-sm"
+            >
+              <option value="" disabled>
+                揀一個櫃桶…
               </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      <SearchableSelect
-        name="category"
-        label="分類(選填)"
-        placeholder="輸入或揀一個分類…"
-        allowCreate
-        defaultValue={item?.categoryName ?? ""}
-        options={categories.map((c) => ({ id: c.id, label: c.name }))}
-        onSelectChange={setSelectedCategoryId}
-      />
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor={nameInputId} className="text-sm font-caption font-medium text-ink-muted">
-          物品名稱
-        </label>
-        {selectedCategoryId != null ? (
-          <ItemNameComboBox
-            inputId={nameInputId}
-            defaultValue={item?.name ?? ""}
-            suggestions={itemNamesByCategoryId[selectedCategoryId] ?? []}
-          />
-        ) : (
-          <input
-            id={nameInputId}
-            name="name"
-            required
-            defaultValue={item?.name ?? ""}
-            placeholder="例如:AA 電芯"
-            className="rounded-sm border border-border-input px-3 py-2 text-base sm:text-sm"
-          />
+              {drawers.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
+
+        <div className="flex-1">
+          <SearchableSelect
+            name="category"
+            label="分類(選填)"
+            placeholder="輸入或揀一個分類…"
+            allowCreate
+            defaultValue={item?.categoryName ?? ""}
+            options={categories.map((c) => ({ id: c.id, label: c.name }))}
+            onSelectChange={setSelectedCategoryId}
+          />
+        </div>
+
+        <div className="flex flex-1 flex-col gap-1">
+          <label htmlFor={nameInputId} className="text-sm font-caption font-medium text-ink-muted">
+            物品名稱
+          </label>
+          {selectedCategoryId != null ? (
+            <ItemNameComboBox
+              inputId={nameInputId}
+              defaultValue={item?.name ?? ""}
+              suggestions={itemNamesByCategoryId[selectedCategoryId] ?? []}
+            />
+          ) : (
+            <input
+              id={nameInputId}
+              name="name"
+              required
+              defaultValue={item?.name ?? ""}
+              placeholder="例如:AA 電芯"
+              className="rounded-sm border border-border-input px-3 py-2 text-base sm:text-sm"
+            />
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">

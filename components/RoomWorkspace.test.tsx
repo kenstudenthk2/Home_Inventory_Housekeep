@@ -116,8 +116,7 @@ describe("RoomWorkspace", () => {
     expect(screen.getByText("冬季外套")).toBeDefined();
   });
 
-  it("scopes the item list to the selected drawer and keeps unfiled items reachable", async () => {
-    const user = userEvent.setup();
+  it("groups items into stacked drawer sections and keeps unfiled items reachable", () => {
     render(
       <RoomWorkspace
         roomId={1}
@@ -129,13 +128,10 @@ describe("RoomWorkspace", () => {
       />,
     );
 
-    // Defaults to the first real drawer tab.
+    // Both sections render at once — no tab switching needed to see either item.
+    expect(screen.getByText("襪褲格(1)")).toBeDefined();
     expect(screen.getByText("格入面嘅嘢")).toBeDefined();
-    expect(screen.queryByText("舊物品(冇格)")).toBeNull();
-
-    await user.click(screen.getByRole("button", { name: "未分類" }));
-
+    expect(screen.getByText("未分類(1)")).toBeDefined();
     expect(screen.getByText("舊物品(冇格)")).toBeDefined();
-    expect(screen.queryByText("格入面嘅嘢")).toBeNull();
   });
 });

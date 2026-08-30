@@ -32,8 +32,6 @@ export function RoomWorkspace({
   const [selectedFurnitureId, setSelectedFurnitureId] = useState<number | null>(
     furniture[0]?.id ?? null,
   );
-  // undefined = no explicit choice yet (fall back to the first tab); a real tab keeps its own id.
-  const [selectedDrawerId, setSelectedDrawerId] = useState<number | null | undefined>(undefined);
 
   const activeFurnitureId =
     selectedFurnitureId !== null && furniture.some((f) => f.id === selectedFurnitureId)
@@ -43,104 +41,102 @@ export function RoomWorkspace({
   const activeDrawers = activeFurniture ? (drawersByFurnitureId[activeFurniture.id] ?? []) : [];
   const furnitureItems = activeFurniture ? (itemsByFurnitureId[activeFurniture.id] ?? []) : [];
   const hasDrawers = activeDrawers.length > 0;
-  // Items created before this furniture had any drawer stay visible under their own tab, never silently hidden.
+  // Items created before this furniture had any drawer stay visible under their own section, never silently hidden.
   const hasUnfiledItems = hasDrawers && furnitureItems.some((i) => i.drawerId === null);
 
-  const drawerTabs: DrawerTab[] = hasDrawers
+  const drawerSections: DrawerTab[] = hasDrawers
     ? [
         ...activeDrawers.map((d) => ({ id: d.id, name: d.name })),
         ...(hasUnfiledItems ? [{ id: null, name: "未分類" }] : []),
       ]
     : [];
-  const activeDrawerId = hasDrawers
-    ? (drawerTabs.some((t) => t.id === selectedDrawerId) ? (selectedDrawerId as number | null) : drawerTabs[0].id)
-    : null;
-
-  const activeItems = !activeFurniture
-    ? []
-    : hasDrawers
-      ? furnitureItems.filter((i) => i.drawerId === activeDrawerId)
-      : furnitureItems;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <section className="order-2 lg:order-1">
         <h2 className="mb-3 font-heading font-semibold text-ink">
-          {activeFurniture ? `${activeFurniture.displayName} 嘅物品(${activeItems.length})` : "物品"}
+          {activeFurniture ? `${activeFurniture.displayName} 嘅物品(${furnitureItems.length})` : "物品"}
         </h2>
 
         {activeFurniture ? (
           <>
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              {drawerTabs.map((tab) => (
-                <div key={tab.id ?? "unfiled"} className="flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDrawerId(tab.id)}
-                    aria-pressed={tab.id === activeDrawerId}
-                    className={`rounded-full px-3 py-1 text-xs font-caption transition-colors duration-150 ease ${
-                      tab.id === activeDrawerId
-                        ? "bg-accent text-white"
-                        : "bg-surface-mist text-ink-muted hover:bg-surface-sage"
-                    }`}
-                  >
-                    {tab.name}
-                  </button>
-                  {tab.id !== null && (
-                    <form action={deleteDrawerAction}>
-                      <input type="hidden" name="id" value={tab.id} />
-                      <input type="hidden" name="furnitureId" value={activeFurniture.id} />
-                      <SubmitButton
-                        aria-label={`刪除${tab.name}`}
-                        className="ml-0.5 flex h-6 w-6 items-center justify-center rounded-full text-ink-faint hover:bg-red-50 hover:text-red-600"
-                        pendingChildren={<Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
-                      >
-                        <X className="h-3 w-3" aria-hidden />
-                      </SubmitButton>
-                    </form>
-                  )}
-                </div>
-              ))}
+            <form action={addDrawerAction} className="mb-4 flex items-center gap-1">
+              <input type="hidden" name="furnitureId" value={activeFurniture.id} />
+              <label htmlFor="drawerName" className="sr-only">
+                新增櫃桶
+              </label>
+              <input
+                id="drawerName"
+                name="name"
+                placeholder="新增櫃桶…"
+                required
+                className="w-32 rounded-full border border-border-input px-2.5 py-1 text-xs sm:w-40"
+              />
+              <SubmitButton
+                aria-label="新增櫃桶"
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white transition-[transform,background-color] duration-150 ease-out hover:bg-accent-light active:scale-[0.97] motion-reduce:transition-none"
+                pendingChildren={<Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
+              >
+                <Plus className="h-3 w-3" aria-hidden />
+              </SubmitButton>
+            </form>
 
-              <form action={addDrawerAction} className="flex items-center gap-1">
-                <input type="hidden" name="furnitureId" value={activeFurniture.id} />
-                <label htmlFor="drawerName" className="sr-only">
-                  新增櫃桶
-                </label>
-                <input
-                  id="drawerName"
-                  name="name"
-                  placeholder="新增櫃桶…"
-                  required
-                  className="w-24 rounded-full border border-border-input px-2.5 py-1 text-xs sm:w-28"
-                />
-                <SubmitButton
-                  aria-label="新增櫃桶"
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white transition-[transform,background-color] duration-150 ease-out hover:bg-accent-light active:scale-[0.97] motion-reduce:transition-none"
-                  pendingChildren={<Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
-                >
-                  <Plus className="h-3 w-3" aria-hidden />
-                </SubmitButton>
-              </form>
-            </div>
-
-            {activeItems.length === 0 ? (
+            {hasDrawers ? (
+              <div className="mb-4 flex flex-col gap-5">
+                {drawerSections.map((section) => {
+                  const sectionItems = furnitureItems.filter((i) => i.drawerId === section.id);
+                  return (
+                    <div key={section.id ?? "unfiled"}>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h3 className="font-heading font-semibold text-ink">
+                          {section.name}({sectionItems.length})
+                        </h3>
+                        {section.id !== null && (
+                          <form action={deleteDrawerAction}>
+                            <input type="hidden" name="id" value={section.id} />
+                            <input type="hidden" name="furnitureId" value={activeFurniture.id} />
+                            <SubmitButton
+                              aria-label={`刪除${section.name}`}
+                              className="flex h-6 w-6 items-center justify-center rounded-full text-ink-faint hover:bg-red-50 hover:text-red-600"
+                              pendingChildren={<Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
+                            >
+                              <X className="h-3 w-3" aria-hidden />
+                            </SubmitButton>
+                          </form>
+                        )}
+                      </div>
+                      {sectionItems.length === 0 ? (
+                        <p className="rounded-md border border-dashed border-border p-4 text-center text-sm font-caption text-ink-faint">
+                          仲未有物品。
+                        </p>
+                      ) : (
+                        <ul className="rounded-md border border-border bg-surface px-4">
+                          {sectionItems.map((item) => (
+                            <ItemRow key={item.id} item={item} furnitureId={activeFurniture.id} />
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : furnitureItems.length === 0 ? (
               <p className="mb-4 rounded-md border border-dashed border-border p-6 text-center font-caption text-ink-faint">
                 仲未有物品。
               </p>
             ) : (
               <ul className="mb-4 rounded-md border border-border bg-surface px-4">
-                {activeItems.map((item) => (
+                {furnitureItems.map((item) => (
                   <ItemRow key={item.id} item={item} furnitureId={activeFurniture.id} />
                 ))}
               </ul>
             )}
 
             <ItemForm
-              key={`${activeFurniture.id}-${activeDrawerId ?? "none"}`}
+              key={activeFurniture.id}
               furnitureId={activeFurniture.id}
               drawers={activeDrawers}
-              defaultDrawerId={activeDrawerId}
+              defaultDrawerId={activeDrawers[0]?.id ?? null}
               categories={categories}
               itemNamesByCategoryId={itemNamesByCategoryId}
               action={createItemAction}
