@@ -7,6 +7,9 @@ import {
   addFurnitureToRoom,
   addFurnitureByName,
   deleteFurniture,
+  findOrCreateUnassignedFurniture,
+  listAllFurniture,
+  UNASSIGNED_FURNITURE_NAME,
 } from "./furniture";
 
 let roomId: number;
@@ -75,5 +78,21 @@ describe("furniture", () => {
     const f = await addFurnitureToRoom(roomId, box.id);
     await deleteFurniture(f.id);
     expect(await getFurniture(f.id)).toBeNull();
+  });
+});
+
+describe("findOrCreateUnassignedFurniture", () => {
+  it("creates the hidden furniture once and reuses it on later calls", async () => {
+    const first = await findOrCreateUnassignedFurniture();
+    const second = await findOrCreateUnassignedFurniture();
+    expect(first.id).toBe(second.id);
+    expect(first.displayName).toBe(UNASSIGNED_FURNITURE_NAME);
+  });
+});
+
+describe("listAllFurniture", () => {
+  it("includes furniture from every room, not just one", async () => {
+    const all = await listAllFurniture();
+    expect(all.some((f) => f.roomId === roomId)).toBe(true);
   });
 });

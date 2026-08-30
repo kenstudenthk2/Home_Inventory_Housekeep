@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { findOrCreateFurnitureType } from "./libraries";
+import { findOrCreateUnassignedRoom } from "./rooms";
 import type { Furniture } from "./types";
+
+export const UNASSIGNED_FURNITURE_NAME = "未定位置";
 
 export type FurnitureSummary = Furniture & { itemCount: number };
 
@@ -87,6 +90,29 @@ export async function addFurnitureByName(
 ): Promise<Furniture> {
   const type = await findOrCreateFurnitureType(typeName, iconKey);
   return addFurnitureToRoom(roomId, type.id);
+}
+
+export async function listAllFurniture(): Promise<Furniture[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("furniture")
+    .select(SELECT)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`讀取傢俬失敗:${error.message}`);
+  return (data as unknown as FurnitureRow[]).map(mapFurniture);
+}
+
+export async function findOrCreateUnassignedFurniture(): Promise<Furniture> {
+  const room = await findOrCreateUnassignedRoom();
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("furniture")
+    .select(SELECT)
+    .eq("room_id", room.id)
+    .maybeSingle();
+  if (error) throw new Error(`讀取未定位置傢俬失敗:${error.message}`);
+  if (data) return mapFurniture(data as unknown as FurnitureRow);
+  return addFurnitureByName(room.id, UNASSIGNED_FURNITURE_NAME, "box");
 }
 
 export async function deleteFurniture(id: number): Promise<void> {
