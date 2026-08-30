@@ -5,7 +5,7 @@ import { SearchableSelect } from "./SearchableSelect";
 import { SubmitButton } from "./SubmitButton";
 import type { Category, Drawer, Item } from "@/lib/db/types";
 
-function ItemNameComboBox({
+export function ItemNameComboBox({
   suggestions,
   defaultValue,
   inputId,
